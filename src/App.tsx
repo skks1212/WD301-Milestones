@@ -5,27 +5,40 @@ import AppContainer from './AppContainer';
 import { Home } from './components/Home';
 import { Form } from './components/Form';
 
+interface stateData {
+    name : string,
+    form : any
+};
+
 function App() {
 
-    const [state, setState] = useState("HOME");
-
-    const SetHomeState = () => {
-        setState("HOME")
+    const initState : stateData = {
+        name : "HOME",
+        form : null
     }
 
-    const SetFormState = () => {
-        setState("FORM")
+    const [state, setState] = useState(initState);
+
+    const SetHomeState = () => {
+        setState(initState)
+    }
+
+    const SetFormState = (formID : number) => {
+        setState({
+            name : "FORM",
+            form : formID
+        });
     }
 
     return (
         <AppContainer>
-            <Header title={"My React x Typescript abomination!"} />
+            <Header title={"Form Builder"} />
             {
-                state === 'HOME' ? (
+                state.name === 'HOME' ? (
                     <Home stateCB={SetFormState}/>
                     
                 ) : (
-                    <Form stateCB={SetHomeState}/>
+                    <Form stateCB={SetHomeState} formState={state.form}/>
                 )
             }
         </AppContainer>
