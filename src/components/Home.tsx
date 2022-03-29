@@ -1,8 +1,12 @@
 import React from "react";
 import { getLocalForms, saveLocalForms } from "./Form"
 import { useState } from "react";
+import { Link, useQueryParams } from "raviger";
+import { input_style } from "./Form";
 
-export function Home(props : {stateCB : (formID : any) => void}) {
+export function Home(props : {}) {
+    const [{search}, setQuery] = useQueryParams();
+    const [searchString, setSearchString] = useState("");
 
     const [state, setState] = useState(() => getLocalForms());
     
@@ -15,24 +19,45 @@ export function Home(props : {stateCB : (formID : any) => void}) {
     }
 
     return (
-        <div className="text-center">
-            <div className="pt-6">
-                <b>
+        <div>
+            <div className="flex justify-between">
+                <h1 className="text-5xl font-bold">
                     My Forms
-                </b>
+                </h1>
+                <form onSubmit={(e) => {
+                e.preventDefault();
+                setQuery({search: searchString})
+                }}>
+                    <input 
+                        type="text"
+                        className={input_style}
+                        value={searchString}
+                        onChange={(e) => {
+                            setSearchString(e.target.value);
+                        }}
+                        name="search"
+                        placeholder="Search Forms"
+                    />
+                </form>
             </div>
+            
+            <br/>
+            
             <div className="flex flex-wrap justify-center gap-3 p-3">
+                
                 {
-                    state.map((form : any, i:number) => (
-                        <div key={i} className="border-2 border-slate-700 rounded-lg ">
+                    state.filter((form)=> form.title.toLowerCase().includes(search?.toLowerCase() || "")).map((form : any, i:number) => (
+                        <div key={i} className="border-2 border-gray-800 rounded-lg">
                             <div className="px-6 py-4">
                                 {form.title}
+                                <br/>
+                                {form.formFields.length} questions
                             </div>
                             <div className="flex">
-                                <button onClick={() => props.stateCB(form.id)} className="flex-1 text-center py-3 border-t-2 border-slate-700 hover:bg-blue-600 transition hover:border-blue-600">
+                                <Link href={'/form/'+form.id} className="flex-1 text-center py-3 border-t-2 border-gray-800 hover:bg-blue-600 transition hover:border-blue-600">
                                     <i className="far fa-pen"></i>
-                                </button>
-                                <button onClick={() => deleteForm(form.id)} className="flex-1 text-center border-t-2 border-slate-700 border-l-2 py-3 hover:bg-red-600 transition hover:border-red-600">
+                                </Link>
+                                <button onClick={() => deleteForm(form.id)} className="flex-1 text-center border-t-2 border-gray-800 border-l-2 py-3 hover:bg-red-600 transition hover:border-red-600">
                                     <i className="far fa-trash"></i>
                                 </button>
                             </div>
@@ -42,7 +67,7 @@ export function Home(props : {stateCB : (formID : any) => void}) {
                 { 
                     state.length === 0 ?
                     (
-                        <div>
+                        <div className="text-gray-400 text-center">
                             <div className="text-7xl font-bold">
                                 (•̀ ﹏•́ )
                             </div>
@@ -56,9 +81,9 @@ export function Home(props : {stateCB : (formID : any) => void}) {
                     )
                 }
             </div>
-            <button className={button_classes} onClick={() => props.stateCB(0)}>
+            <Link className={button_classes} href={'/form/0'}>
                <i className="far fa-plus"></i> &nbsp;Create New
-            </button>
+            </Link>
         </div>
     )
 }

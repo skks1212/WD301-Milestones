@@ -1,3 +1,4 @@
+import { Link, navigate } from "raviger";
 import React, {useState, useEffect, useRef} from "react";
 
 interface formData {
@@ -67,13 +68,19 @@ const saveFormData = (currentState: formData) => {
     saveLocalForms(updatedLocalForms);
 }
 
-export function Form( props: {stateCB : () => void, formState : number}){
+export const input_style = 'border-2 bg-gray-800 border-gray-800 rounded-lg p-2 mt-0 w-full block';
+
+export function Form( props: {formState : number}){
 
     const [state, setState] = useState(() => initialState(props.formState));
     console.log(state);
     const [newField, setNewField] = useState("");
     const titleRef = useRef<HTMLInputElement>(null);
     
+    useEffect(() => {
+        state.id !== props.formState && navigate(`/form/${state.id}`);
+    }, [state.id, props.formState]);
+
     useEffect( () => {
         console.log("%cComponent Mounted", "color:grey;");
         document.title = "Form Editor";
@@ -142,7 +149,7 @@ export function Form( props: {stateCB : () => void, formState : number}){
         });
     }
 
-    const input_style = 'border-2 bg-gray-700 border-gray-800 rounded-lg p-2 mt-0 w-full block';
+    
     return (
         <div className="mt-4">
             <input 
@@ -202,9 +209,9 @@ export function Form( props: {stateCB : () => void, formState : number}){
                     Clear Form
                 </button>
                 
-                <button className="cursor-pointer p-2 m-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition" onClick={props.stateCB}>
+                <Link className="cursor-pointer p-2 m-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition" href="/home">
                     Close Form
-                </button>
+                </Link>
             </div>
         </div>
     )

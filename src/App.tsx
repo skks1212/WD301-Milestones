@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
-import Header from './components/Header';
-import AppContainer from './AppContainer';
-import { Home } from './components/Home';
-import { Form } from './components/Form';
+import AppRouter from './router/AppRouter';
 
 interface stateData {
     name : string,
@@ -30,19 +27,7 @@ function App() {
         });
     }
 
-    return (
-        <AppContainer>
-            <Header title={"Form Builder"} />
-            {
-                state.name === 'HOME' ? (
-                    <Home stateCB={SetFormState}/>
-                    
-                ) : (
-                    <Form stateCB={SetHomeState} formState={state.form}/>
-                )
-            }
-        </AppContainer>
-    );
+    return <AppRouter />;
 }
 
 export default App;
