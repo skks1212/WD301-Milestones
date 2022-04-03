@@ -4,10 +4,10 @@ import logo from "../logo.svg";
 
 export default function Header(props: {title :string}) {
     const spinstyle = {
-        animation : "spin 2s linear infinite"
+        animation : "spin 4s linear infinite"
     }
     const styling = {
-        header_a : "uppercase m-4 text-gray-400",
+        header_a : "m-4 text-gray-400",
         header_a_hover : "hover:text-white",
         header_a_active : "text-blue-400"
     }
@@ -30,13 +30,13 @@ export default function Header(props: {title :string}) {
                         ].map((link, i) => {
                             return (
                                 <ActiveLink href={link[1]} className={styling.header_a +" "+ styling.header_a_hover} key={i} exactActiveClass={styling.header_a_active} >
-                                    <i className={`fad fa-${link[2]}`}></i> &nbsp;{link[0]}
+                                    {link[0]}
                                 </ActiveLink>
                             )
                         })
                     }
-                    <Link href="/form/0" className="bg-blue-400 rounded p-2 ml-4">
-                        <i className="far fa-plus"></i> &nbsp;Create New
+                    <Link href="/form/0" className="bg-blue-700 rounded-xl px-4 py-2 ml-4 hover:bg-blue-800 transition">
+                        Create New
                     </Link>
                 </div>
             </div>

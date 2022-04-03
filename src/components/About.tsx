@@ -8,7 +8,9 @@ export default function About() {
             </h1>
             <br/>
             <p>
-                Hehe
+                Formify helps you to create forms as quick as someone can fill them in.
+                <br/>
+                Made with ❤️ by <a href="https://shivank.writeroo.in/">Shivank Kacker</a>
             </p>
         </div>
     );

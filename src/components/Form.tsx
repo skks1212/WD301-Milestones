@@ -1,25 +1,24 @@
 import { Link, navigate } from "raviger";
 import React, {useState, useEffect, useRef} from "react";
 
-interface formData {
+export interface formData {
     id : number,
     title : string,
     formFields : formField[];
 }
 
-interface formField{
+export interface formField{
     id : number,
     label:  string,
     type : string,
-    value : string
 }
 
 const formFields : formField[] = [
-    {id : 0, label : "First Name", type : "text", value : ""},
+    /*{id : 0, label : "First Name", type : "text"},
     {id : 1, label : "Last Name", type : "text", value : ""},
     {id : 2, label : "Email", type : "email", value : ""},
     {id : 3, label : "Phone Number", type : "number", value : ""},
-    {id : 4, label : "Date of Birth", type : "date", value : ""}
+    {id : 4, label : "Date of Birth", type : "date", value : ""}*/
 ]
 
 export const getLocalForms: () => formData[] = () => {
@@ -31,40 +30,53 @@ export const getLocalForms: () => formData[] = () => {
 
 const initialState: (formID : number) => formData = (formID : number) => {
     const localForms = getLocalForms();
-    console.log(localForms);
-    if (localForms.length > 0 && formID !== 0) {
-        return localForms.filter(form => form.id === formID)[0];
-    }else{
-        const idTime = Number(new Date());
-        //console.log(idTime);
-        const newForm = {
-            id : idTime,
-            title : "Untitled Form",
-            formFields : formFields
-        }
-        const updatedToSave = [...localForms, newForm];
-        console.log(updatedToSave);
-        saveLocalForms(updatedToSave);
-        return newForm;
+
+    //find form if exists
+    const checkForm = localForms.find((form)=>form.id === formID);
+    if(checkForm && formID !== 0){
+        return checkForm;
     }
+    
+    /*         No Forms?
+    ⠀⣞⢽⢪⢣⢣⢣⢫⡺⡵⣝⡮⣗⢷⢽⢽⢽⣮⡷⡽⣜⣜⢮⢺⣜⢷⢽⢝⡽⣝
+    ⠸⡸⠜⠕⠕⠁⢁⢇⢏⢽⢺⣪⡳⡝⣎⣏⢯⢞⡿⣟⣷⣳⢯⡷⣽⢽⢯⣳⣫⠇
+    ⠀⠀⢀⢀⢄⢬⢪⡪⡎⣆⡈⠚⠜⠕⠇⠗⠝⢕⢯⢫⣞⣯⣿⣻⡽⣏⢗⣗⠏⠀
+    ⠀⠪⡪⡪⣪⢪⢺⢸⢢⢓⢆⢤⢀⠀⠀⠀⠀⠈⢊⢞⡾⣿⡯⣏⢮⠷⠁⠀⠀
+    ⠀⠀⠀⠈⠊⠆⡃⠕⢕⢇⢇⢇⢇⢇⢏⢎⢎⢆⢄⠀⢑⣽⣿⢝⠲⠉⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⡿⠂⠠⠀⡇⢇⠕⢈⣀⠀⠁⠡⠣⡣⡫⣂⣿⠯⢪⠰⠂⠀⠀⠀⠀
+    ⠀⠀⠀⠀⡦⡙⡂⢀⢤⢣⠣⡈⣾⡃⠠⠄⠀⡄⢱⣌⣶⢏⢊⠂⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⢝⡲⣜⡮⡏⢎⢌⢂⠙⠢⠐⢀⢘⢵⣽⣿⡿⠁⠁⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠨⣺⡺⡕⡕⡱⡑⡆⡕⡅⡕⡜⡼⢽⡻⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⣼⣳⣫⣾⣵⣗⡵⡱⡡⢣⢑⢕⢜⢕⡝⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⣴⣿⣾⣿⣿⣿⡿⡽⡑⢌⠪⡢⡣⣣⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⡟⡾⣿⢿⢿⢵⣽⣾⣼⣘⢸⢸⣞⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠁⠇⠡⠩⡫⢿⣝⡻⡮⣒⢽⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    */
+
+    const newForm = {
+        id : Number(new Date()),
+        title : "Untitled Form",
+        formFields : formFields
+    }
+    
+    
+    const updatedToSave = [...localForms, newForm];
+    saveLocalForms(updatedToSave);
+    
+    return newForm;
     
 }
 
 export const saveLocalForms = (localForms: formData[]) => {
-    //console.log(JSON.stringify(localForms));
     localStorage.setItem("savedForms", JSON.stringify(localForms));
-    //console.log(localStorage['savedForms']);
 }
 
 const saveFormData = (currentState: formData) => {
-    //console.log(JSON.stringify(currentState));
     const localForms = getLocalForms();
     
     const updatedLocalForms = localForms.map((form) => 
         form.id === currentState.id ? currentState : form
     );
-    //console.log(updatedLocalForms);
-
     saveLocalForms(updatedLocalForms);
 }
 
@@ -73,7 +85,6 @@ export const input_style = 'border-2 bg-gray-800 border-gray-800 rounded-lg p-2 
 export function Form( props: {formState : number}){
 
     const [state, setState] = useState(() => initialState(props.formState));
-    console.log(state);
     const [newField, setNewField] = useState("");
     const titleRef = useRef<HTMLInputElement>(null);
     
@@ -86,7 +97,7 @@ export function Form( props: {formState : number}){
         document.title = "Form Editor";
         titleRef.current?.focus();
         return () => {
-            document.title = "React Abomination";
+            document.title = "Formify";
         }
     }, []);
 
@@ -109,10 +120,9 @@ export function Form( props: {formState : number}){
                 formFields : [
                     ...state.formFields,
                     {   
-                        id : state.formFields.length + 2,
+                        id : state.formFields.length,
                         label : newField,
-                        type: "text",
-                        value : ""
+                        type: "text"
                     }
                 ]
             });
@@ -128,12 +138,12 @@ export function Form( props: {formState : number}){
     }
 
     const updateField = (e:any, id:number) => {
-        let value = e.target.value;
+        const thisValue = e.target.value;
         setState({
             ...state,
             formFields: state.formFields.map((field) => {
                 if(field.id === id){
-                    return {...field, value };
+                    return {...field, label:thisValue };
                 }
                 return field;
             }),
@@ -141,27 +151,43 @@ export function Form( props: {formState : number}){
     }
 
     const emptyFields = () => {
+        window.confirm('All fields will be deleted, form will be reset. Are you sure you would like to continue?')?
         setState({
             ...state,
-            formFields: state.formFields.map((field) => {
-                return {...field, value : ""};
-            }),
-        });
+            formFields: []
+        }) :
+        console.log('Form reset cancelled')
     }
 
+    const toolbar_button = "inline-flex w-[40px] bg-gray-800/70 rounded-xl h-[40px] justify-center items-center transition hover:bg-gray-800/40";
+    const toolbar_button_extendable = "inline-flex bg-gray-800/70 rounded-xl h-[40px] justify-center items-center transition hover:bg-gray-800/40 px-4";
     
     return (
         <div className="mt-4">
-            <input 
-                type="text"
-                className={input_style}
-                value={state.title}
-                onChange={e=>{
-                    setState({...state, title: e.target.value});
-                }}
-                placeholder="Create Input"
-                ref={titleRef}
-            />
+            <div className="flex justify-between items-center">
+                <input 
+                    type="text"
+                    className="text-3xl font-bold w-[300px] bg-transparent outline-0 border-b-[5px] border-b-gray-700 mb-10 py-3 transition focus:border-b-gray-200"
+                    value={state.title}
+                    onChange={e=>{
+                        setState({...state, title: e.target.value});
+                    }}
+                    placeholder="Form Title"
+                    ref={titleRef}
+                />
+                <div className="flex gap-3">
+                    <Link href={`/preview/${state.id}`} className={toolbar_button_extendable} title="Preview">
+                        <i className="far fa-eye"></i> &nbsp; Preview
+                    </Link>
+                    <button className={toolbar_button} onClick={emptyFields} title="Remove all fields">
+                        <i className="far fa-empty-set"></i>
+                    </button>
+                    <Link className={toolbar_button} href="/home" title="Close Form">
+                        <i className="far fa-times"></i>
+                    </Link>
+                </div>
+            </div>
+            
             {state.formFields.map((field,i) => (
                 <div key = {i} className="flex items-center justify-center gap-1">
                     <div className="w-full flex items-center justify-center pl-1">
@@ -170,8 +196,8 @@ export function Form( props: {formState : number}){
                             name={field.label} 
                             id={"input_"+field.label} 
                             className={input_style} 
-                            placeholder={field.label}
-                            value={field.value}
+                            placeholder="Field Name"
+                            value={field.label}
                             onChange={e=>{
                                 updateField(e, i);
                                 //state.formFields[i].value = e.target.value;
@@ -179,7 +205,7 @@ export function Form( props: {formState : number}){
                         />
                     </div>
                     <div>
-                        <button className="cursor-pointer p-2 m-2 bg-blue-500 hover:bg-blue-600 transition text-white rounded-lg w-[40px]" onClick={_=>removeField(field.label)}>
+                        <button className="cursor-pointer p-2 m-2 bg-blue-700 hover:bg-blue-800 transition text-white rounded-lg w-[40px]" onClick={_=>removeField(field.label)}>
                             <i className="far fa-times" />
                         </button>
                     </div>
@@ -195,23 +221,16 @@ export function Form( props: {formState : number}){
                     onChange={e=>{
                         setNewField(e.target.value);
                     }}
-                    placeholder="Create Input"
+                    placeholder="Add Field"
                 />
                 <div>
-                    <button className="cursor-pointer p-2 m-2 bg-blue-500 hover:bg-blue-600 transition text-white rounded-lg w-[150px]" onClick={addField}>
+                    <button className="cursor-pointer p-2 m-2 bg-blue-700 hover:bg-blue-800 transition text-white rounded-lg w-[150px]" onClick={addField}>
                         Add Field&nbsp;<i className="far fa-plus" />
                     </button>
                 </div>
             </div>
             <div className="pt-4 text-center">
-                <input type="submit" className='cursor-pointer p-2 m-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition'/>
-                <button className="cursor-pointer p-2 m-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition" onClick={emptyFields}>
-                    Clear Form
-                </button>
                 
-                <Link className="cursor-pointer p-2 m-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition" href="/home">
-                    Close Form
-                </Link>
             </div>
         </div>
     )
