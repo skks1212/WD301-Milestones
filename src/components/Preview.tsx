@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import { getLocalForms, saveLocalForms } from "./Form"
+import React, { useState } from "react";
+import { getLocalForms } from "./Form"
 import PreviewQuestions from "./PreviewQuestions";
 
 export default function Preview(props : {formID : number}){
@@ -10,8 +10,6 @@ export default function Preview(props : {formID : number}){
     const [quizState, setQuizState] = useState(-1);
     const [quizAnswers, setQuizAnswer] = useState<Array<string>>([]);
     const [answerField, setAnswerField] = useState([]);
-
-    const inputRef = useRef<HTMLInputElement>(null);
 
     let titleSize;
     quizState < 0 ? titleSize = "text-5xl font-bold" : titleSize = "text-xl text-gray-400";

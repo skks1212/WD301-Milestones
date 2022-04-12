@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { fieldTypesDisplay, formField } from "../types/FormTypes";
+import { formField } from "../types/FormTypes";
 import { input_style } from "./Form";
 
 export default function PreviewQuestions(props: {qs : formField, af : any, sf : Function}){
