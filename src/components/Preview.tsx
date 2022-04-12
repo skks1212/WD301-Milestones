@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { getLocalForms, saveLocalForms } from "./Form"
+import PreviewQuestions from "./PreviewQuestions";
 
 export default function Preview(props : {formID : number}){
 
@@ -8,7 +9,7 @@ export default function Preview(props : {formID : number}){
 
     const [quizState, setQuizState] = useState(-1);
     const [quizAnswers, setQuizAnswer] = useState<Array<string>>([]);
-    const [answerField, setAnswerField] = useState("");
+    const [answerField, setAnswerField] = useState([]);
 
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -27,13 +28,14 @@ export default function Preview(props : {formID : number}){
     }
 
     const progressQuiz = () => {
-        const inputAnswer : any = inputRef.current?.value;
+        const inputAnswer = answerField.join(', ');
+        console.log(answerField);
         setQuizAnswer([
             ...quizAnswers,
             inputAnswer
         ])
         quizState === thisForm.formFields.length ? console.log('Form is over') : setQuizState(quizState + 1) ;
-        setAnswerField("");
+        setAnswerField([]);
         
     }
     
@@ -113,16 +115,9 @@ export default function Preview(props : {formID : number}){
                                 {currentField.label}
                             </div>
                             <div className="mt-12">
-                                <input 
-                                    type={currentField.type} 
-                                    placeholder="Your Answer..."
-                                    className="text-2xl bg-gray-800 py-4 px-7 rounded-xl outline-none"
-                                    ref={inputRef}
-                                    value={answerField}
-                                    onChange={e=>{
-                                        setAnswerField(e.target.value)
-                                    }}
-                                />
+                                {
+                                    <PreviewQuestions qs={currentField} af={answerField} sf = {setAnswerField}/>
+                                }
                                 <br/>
                                 <br/>
                                 <button className="bg-blue-700 rounded-xl px-6 py-3 font-bold hover:bg-blue-800 transition hover:rounded-xl" onClick={()=>progressQuiz()}>

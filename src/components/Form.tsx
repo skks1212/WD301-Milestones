@@ -1,5 +1,6 @@
 import { Link, navigate } from "raviger";
 import React, {useState, useEffect, useRef} from "react";
+import { fieldTypesDisplay, formField, optionTypes, textTypes } from "../types/FormTypes";
 
 export interface formData {
     id : number,
@@ -7,19 +8,7 @@ export interface formData {
     formFields : formField[];
 }
 
-export interface formField{
-    id : number,
-    label:  string,
-    type : string,
-}
-
-const formFields : formField[] = [
-    /*{id : 0, label : "First Name", type : "text"},
-    {id : 1, label : "Last Name", type : "text", value : ""},
-    {id : 2, label : "Email", type : "email", value : ""},
-    {id : 3, label : "Phone Number", type : "number", value : ""},
-    {id : 4, label : "Date of Birth", type : "date", value : ""}*/
-]
+const formFields : formField[] = [];
 
 export const getLocalForms: () => formData[] = () => {
     const savedFormsJSON = localStorage.getItem("savedForms");
@@ -36,29 +25,12 @@ const initialState: (formID : number) => formData = (formID : number) => {
     if(checkForm && formID !== 0){
         return checkForm;
     }
-    
-    /*         No Forms?
-    ⠀⣞⢽⢪⢣⢣⢣⢫⡺⡵⣝⡮⣗⢷⢽⢽⢽⣮⡷⡽⣜⣜⢮⢺⣜⢷⢽⢝⡽⣝
-    ⠸⡸⠜⠕⠕⠁⢁⢇⢏⢽⢺⣪⡳⡝⣎⣏⢯⢞⡿⣟⣷⣳⢯⡷⣽⢽⢯⣳⣫⠇
-    ⠀⠀⢀⢀⢄⢬⢪⡪⡎⣆⡈⠚⠜⠕⠇⠗⠝⢕⢯⢫⣞⣯⣿⣻⡽⣏⢗⣗⠏⠀
-    ⠀⠪⡪⡪⣪⢪⢺⢸⢢⢓⢆⢤⢀⠀⠀⠀⠀⠈⢊⢞⡾⣿⡯⣏⢮⠷⠁⠀⠀
-    ⠀⠀⠀⠈⠊⠆⡃⠕⢕⢇⢇⢇⢇⢇⢏⢎⢎⢆⢄⠀⢑⣽⣿⢝⠲⠉⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⡿⠂⠠⠀⡇⢇⠕⢈⣀⠀⠁⠡⠣⡣⡫⣂⣿⠯⢪⠰⠂⠀⠀⠀⠀
-    ⠀⠀⠀⠀⡦⡙⡂⢀⢤⢣⠣⡈⣾⡃⠠⠄⠀⡄⢱⣌⣶⢏⢊⠂⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⢝⡲⣜⡮⡏⢎⢌⢂⠙⠢⠐⢀⢘⢵⣽⣿⡿⠁⠁⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠨⣺⡺⡕⡕⡱⡑⡆⡕⡅⡕⡜⡼⢽⡻⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⣼⣳⣫⣾⣵⣗⡵⡱⡡⢣⢑⢕⢜⢕⡝⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⣴⣿⣾⣿⣿⣿⡿⡽⡑⢌⠪⡢⡣⣣⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⡟⡾⣿⢿⢿⢵⣽⣾⣼⣘⢸⢸⣞⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠁⠇⠡⠩⡫⢿⣝⡻⡮⣒⢽⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    */
 
     const newForm = {
         id : Number(new Date()),
         title : "Untitled Form",
         formFields : formFields
     }
-    
     
     const updatedToSave = [...localForms, newForm];
     saveLocalForms(updatedToSave);
@@ -80,12 +52,31 @@ const saveFormData = (currentState: formData) => {
     saveLocalForms(updatedLocalForms);
 }
 
-export const input_style = 'border-2 bg-gray-800 border-gray-800 rounded-lg p-2 mt-0 w-full block';
+interface newField {
+    value : string,
+    type : string,
+}
+
+interface optionsField {
+    id : number,
+    value : string
+}
+
+const defaultNewField : newField= {
+    value : "",
+    type : "text"
+}
+
+const defaultOptions : optionsField[] = [];
+
+export const input_style = 'border-2 bg-gray-800/70 border-gray-800 rounded-xl py-2 px-3 mt-0 w-full block focus:bg-gray-800 outline-0 focus:border-blue-700 transition';
 
 export function Form( props: {formState : number}){
 
     const [state, setState] = useState(() => initialState(props.formState));
-    const [newField, setNewField] = useState("");
+    const [newField, setNewField] = useState(defaultNewField);
+    const [newOption, setNewOption] = useState(defaultOptions);
+
     const titleRef = useRef<HTMLInputElement>(null);
     
     useEffect(() => {
@@ -114,20 +105,73 @@ export function Form( props: {formState : number}){
 
     const addField = () => {
 
-        if(newField && newField !== '' && newField !== '{}'){
+        let addObject : formField = {
+            kind : "text",
+            id : state.formFields.length,
+            label : newField.value,
+            type: newField.type
+        };
+
+        if(optionTypes.includes(newField.type)){
+            addObject = {...addObject, kind : 'options', options : []};
+            setNewOption([
+                ...newOption,
+                {
+                    id : state.formFields.length,
+                    value : ""
+                }
+            ]);
+        }
+
+        if(newField.value && newField.value !== '' && newField.value !== '{}'){
             setState({
                 ...state,
                 formFields : [
                     ...state.formFields,
-                    {   
-                        id : state.formFields.length,
-                        label : newField,
-                        type: "text"
-                    }
+                    addObject
                 ]
             });
-            setNewField("");
+            setNewField(defaultNewField);
         }
+    }
+
+    const addOption = (field : number) => {
+        const optionValue = newOption.filter(f=>f.id === field).map(fe=>fe.value)[0];
+        
+        setState({
+            ...state,
+            formFields : state.formFields.map(f=>{
+                if(f.id === field){
+                    switch (f.kind) {
+                        case "options":
+                            return {
+                                ...f,
+                                kind : "options",
+                                options : [
+                                    ...f.options,
+                                    optionValue
+                                ]
+                            }
+                        default :
+                            return f;
+                    }
+                }
+                return f;
+            })
+        });
+
+        setNewOption([
+            ...newOption.map(option=>{
+                if(option.id === field){
+                    return {
+                        ...option,
+                        value : ""
+                    }
+                }
+                return option;
+            })
+        ]);
+        
     }
 
     const removeField = (id:string) => {
@@ -148,6 +192,33 @@ export function Form( props: {formState : number}){
                 return field;
             }),
         });
+    }
+
+    const updateOption = (e:any, qid:number, oid:number) => {
+        const optionValue = e.target.value;
+        setState({
+            ...state,
+            formFields: state.formFields.map((field)=>{
+                if(field.id === qid){
+                    switch (field.kind) {
+                        case "options":
+                            return {
+                                ...field,
+                                options : field.options.map((op, i)=>{
+                                    if(i === oid){
+                                        return optionValue;
+                                    }
+                                    return op;
+                                })
+                            };
+                        default :
+                            return field;
+                    }
+                }else{
+                    return field;
+                }
+            })
+        })
     }
 
     const emptyFields = () => {
@@ -189,43 +260,107 @@ export function Form( props: {formState : number}){
             </div>
             
             {state.formFields.map((field,i) => (
-                <div key = {i} className="flex items-center justify-center gap-1">
-                    <div className="w-full flex items-center justify-center pl-1">
+                <div key = {i} className="flex items-center justify-center gap-1 mb-2">
+                    <div className="w-full pl-1">
+                        <span className="text-gray-400">
+                            {fieldTypesDisplay.filter(f=>f.type === field.type).map(fe=>fe.name)}
+                        </span>
+                        <br/>
                         <input 
-                            type={field.type} 
+                            type="text" 
                             name={field.label} 
                             id={"input_"+field.label} 
-                            className={input_style} 
+                            className={input_style+' mt-1'} 
                             placeholder="Field Name"
                             value={field.label}
                             onChange={e=>{
                                 updateField(e, i);
-                                //state.formFields[i].value = e.target.value;
                             }}
                         />
+                        {
+                            field.kind === 'options' ?
+                            (
+                                <div className="ml-4 border-l-2 border-gray-800 pl-4 mt-3">
+                                    <small className="text-gray-400">
+                                        Options
+                                    </small>
+                                    <br/>
+                                    {
+                                        field.options.map((option,x)=> (
+                                            <input
+                                                key={x}
+                                                type="text"
+                                                placeholder="Option Name"
+                                                value={option}
+                                                className={input_style+' mb-2'}
+                                                onChange={e=>{
+                                                    updateOption(e,i,x)
+                                                }}
+                                            />
+                                        ))
+                                    }
+                                    <br/>
+                                    <div className="flex align-center justify-center gap-2">
+                                        <input 
+                                            type="text"
+                                            placeholder="Add Option"
+                                            className={input_style}
+                                            value = {newOption.filter(f=>f.id === field.id).map(fe=>fe.value)}
+                                            onChange={e=>{
+                                                setNewOption([
+                                                    ...newOption.filter(f=>f.id !== field.id),
+                                                    {
+                                                        id : i,
+                                                        value : e.target.value
+                                                    }
+                                                ]);
+                                            }}
+                                        />
+                                        <button className={toolbar_button} onClick={()=>addOption(i)}>
+                                            <i className="far fa-grid-2-plus" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ) :
+                            (
+                                <>
+                                </>
+                            )
+                        }
                     </div>
                     <div>
-                        <button className="cursor-pointer p-2 m-2 bg-blue-700 hover:bg-blue-800 transition text-white rounded-lg w-[40px]" onClick={_=>removeField(field.label)}>
-                            <i className="far fa-times" />
+                        <button className={toolbar_button+` hover:bg-red-600`} onClick={_=>removeField(field.label)}>
+                            <i className="far fa-trash" />
                         </button>
                     </div>
                     
                 </div>
             ))}
             
-            <div className="w-full flex items-center justify-center mt-4 pt-4 border-dashed border-t-2 pl-1 border-t-gray-500">
+            <div className="w-full flex items-center justify-center mt-4 pt-4 border-dashed border-t-2 pl-1 border-t-gray-800 gap-2">
                 <input 
                     type="text"
                     className={input_style}
-                    value={newField}
+                    value={newField.value}
                     onChange={e=>{
-                        setNewField(e.target.value);
+                        setNewField({...newField, value: e.target.value});
                     }}
                     placeholder="Add Field"
                 />
                 <div>
-                    <button className="cursor-pointer p-2 m-2 bg-blue-700 hover:bg-blue-800 transition text-white rounded-lg w-[150px]" onClick={addField}>
-                        Add Field&nbsp;<i className="far fa-plus" />
+                    <select className="border-2 bg-gray-800 border-gray-800 rounded-lg p-2" value={newField.type} onChange={e=>setNewField({...newField, type: e.target.value})}>
+                        {
+                            fieldTypesDisplay.map((type, i) => (
+                                <option value={type.type} key={i}>
+                                    {type.name}
+                                </option>
+                            ))
+                        }
+                    </select>
+                </div>
+                <div>
+                    <button className="cursor-pointer p-2 ml-0 bg-blue-700 hover:bg-blue-800 transition text-white rounded-lg w-[150px]" onClick={addField}>
+                        <i className="far fa-plus" /> &nbsp; Add Field
                     </button>
                 </div>
             </div>
