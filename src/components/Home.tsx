@@ -1,5 +1,5 @@
 import React from "react";
-import { getLocalForms, saveLocalForms } from "./Form"
+import { formData, getLocalForms, saveLocalForms } from "./Form"
 import { useState } from "react";
 import { Link, useQueryParams } from "raviger";
 import { input_style } from "./Form";
@@ -49,7 +49,7 @@ export function Home(props : {}) {
             <div className="flex flex-wrap justify-center gap-3 p-3">
                 
                 {
-                    state.filter((form)=> form.title.toLowerCase().includes(search?.toLowerCase() || "")).map((form : any, i:number) => (
+                    state.filter((form)=> form.title.toLowerCase().includes(search?.toLowerCase() || "")).map((form : formData, i:number) => (
                         <div key={i} className="border-2 border-gray-800 rounded-lg min-w-[200px]">
                             <div className="px-6 py-4">
                                 <b className="text-xl">

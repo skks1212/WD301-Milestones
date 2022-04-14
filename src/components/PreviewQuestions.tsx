@@ -1,11 +1,12 @@
 import React, { useRef } from "react";
 import { formField } from "../types/FormTypes";
+import { PreviewState } from "../types/PreviewTypes";
 import { input_style } from "./Form";
 
-export default function PreviewQuestions(props: {qs : formField, af : any, sf : Function}){
+export default function PreviewQuestions(props: {qs : formField, previewState : PreviewState, previewDispatch : Function}){
     const currentField = props.qs;
-    const answerField = props.af;
-    const setAnswerField = props.sf;
+    const previewState = props.previewState;
+    const previewDispatch = props.previewDispatch;
 
     const multiselectRef = useRef<HTMLInputElement>(null);
 
@@ -25,11 +26,7 @@ export default function PreviewQuestions(props: {qs : formField, af : any, sf : 
     }
 
     const AddOptionAnswer = (value : string) => {
-        let toChange = [];
-        !answerField.includes(value) ? 
-        toChange = [...answerField, value] : 
-        toChange = [...answerField.filter((f : any)=>f !== value)]
-        setAnswerField(toChange);
+        previewDispatch({type: "add_option_answer", answer : value});
     }
 
     switch (currentField.type) {
@@ -40,9 +37,9 @@ export default function PreviewQuestions(props: {qs : formField, af : any, sf : 
                     type={currentField.type}
                     placeholder="Your Answer..."
                     className="text-2xl bg-gray-800 py-4 px-7 rounded-xl outline-none"
-                    value={answerField}
+                    value={previewState.answerField}
                     onChange={e=>{
-                        setAnswerField([e.target.value])
+                        previewDispatch({type : "set_answer", answer : e.target.value})
                     }}
                 />
             );
@@ -52,9 +49,9 @@ export default function PreviewQuestions(props: {qs : formField, af : any, sf : 
                 <textarea 
                     placeholder="Your Answer..." 
                     className="text-2xl bg-gray-800 py-4 px-7 rounded-xl outline-none"
-                    value={answerField}
+                    value={previewState.answerField}
                     onChange={e=>{
-                        setAnswerField([e.target.value])
+                        previewDispatch({type : "set_answer", answer : e.target.value})
                     }}
                 />
             )
@@ -63,9 +60,9 @@ export default function PreviewQuestions(props: {qs : formField, af : any, sf : 
                 case "options":
                     return (
                         <select
-                            value={answerField}
+                            value={previewState.answerField}
                             onChange={e=>{
-                                setAnswerField([e.target.value])
+                                previewDispatch({type : "set_answer", answer : e.target.value})
                             }}
                             className={input_style}
                         >
@@ -96,7 +93,7 @@ export default function PreviewQuestions(props: {qs : formField, af : any, sf : 
                                                 type={currentField.type}
                                                 value={option}
                                                 onChange={e=>{
-                                                    setAnswerField([e.target.value])
+                                                    previewDispatch({type : "set_answer", answer : e.target.value})
                                                 }}
                                                 name={"input_"+currentField.id}
                                             />
@@ -147,7 +144,7 @@ export default function PreviewQuestions(props: {qs : formField, af : any, sf : 
                         <div className={input_style + ' relative w-[200px] cursor-pointer'}>
                             <div className="flex items-center justify-between" onClick={()=> toggleMulti()}>
                                 <span>
-                                    {answerField.length > 0 ? answerField.join(', ') : (<span className="text-gray-500">Nothing Selected</span>)}
+                                    {previewState.answerField.length > 0 ? previewState.answerField.join(', ') : (<span className="text-gray-500">Nothing Selected</span>)}
                                 </span>
                                 <i className="far fa-chevron-down"/>
                             </div>

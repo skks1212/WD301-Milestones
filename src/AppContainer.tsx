@@ -6,7 +6,7 @@ export default function AppContainer( props : {children : React.ReactNode}){
         <>
             <div className="bg-gray-900">
                 <Header title={"Formify"} />
-                <div className="text-center mt-[120px]">
+                <div className="text-center mt-[100px]">
                     <div className="inline-block w-[calc(100%-60px)] max-w-[1200px] m-[30px] text-left text-white">
                         {props.children}
                     </div>

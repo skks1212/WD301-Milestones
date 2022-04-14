@@ -1,6 +1,7 @@
 import { Link, navigate } from "raviger";
-import React, {useState, useEffect, useRef} from "react";
-import { fieldTypesDisplay, formField, optionTypes, textTypes } from "../types/FormTypes";
+import React, {useState, useEffect, useRef, useReducer} from "react";
+import { reducer } from "../actions/FormActions";
+import { fieldTypesDisplay, formField } from "../types/FormTypes";
 
 export interface formData {
     id : number,
@@ -52,12 +53,12 @@ const saveFormData = (currentState: formData) => {
     saveLocalForms(updatedLocalForms);
 }
 
-interface newField {
+export interface newField {
     value : string,
     type : string,
 }
 
-interface optionsField {
+export interface optionsField {
     id : number,
     value : string
 }
@@ -73,12 +74,14 @@ export const input_style = 'border-2 bg-gray-800/70 border-gray-800 rounded-xl p
 
 export function Form( props: {formState : number}){
 
-    const [state, setState] = useState(() => initialState(props.formState));
+    const [state, dispatch] = useReducer(reducer, null, () => initialState(props.formState));
     const [newField, setNewField] = useState(defaultNewField);
     const [newOption, setNewOption] = useState(defaultOptions);
 
     const titleRef = useRef<HTMLInputElement>(null);
     
+    
+
     useEffect(() => {
         state.id !== props.formState && navigate(`/form/${state.id}`);
     }, [state.id, props.formState]);
@@ -103,66 +106,10 @@ export function Form( props: {formState : number}){
         }
     }, [state]);
 
-    const addField = () => {
-
-        let addObject : formField = {
-            kind : "text",
-            id : state.formFields.length,
-            label : newField.value,
-            type: newField.type
-        };
-
-        if(optionTypes.includes(newField.type)){
-            addObject = {...addObject, kind : 'options', options : []};
-            setNewOption([
-                ...newOption,
-                {
-                    id : state.formFields.length,
-                    value : ""
-                }
-            ]);
-        }
-
-        if(newField.value && newField.value !== '' && newField.value !== '{}'){
-            setState({
-                ...state,
-                formFields : [
-                    ...state.formFields,
-                    addObject
-                ]
-            });
-            setNewField(defaultNewField);
-        }
-    }
-
-    const addOption = (field : number) => {
-        const optionValue = newOption.filter(f=>f.id === field).map(fe=>fe.value)[0];
-        
-        setState({
-            ...state,
-            formFields : state.formFields.map(f=>{
-                if(f.id === field){
-                    switch (f.kind) {
-                        case "options":
-                            return {
-                                ...f,
-                                kind : "options",
-                                options : [
-                                    ...f.options,
-                                    optionValue
-                                ]
-                            }
-                        default :
-                            return f;
-                    }
-                }
-                return f;
-            })
-        });
-
+    const resetOptionField = (field : formField) => {
         setNewOption([
             ...newOption.map(option=>{
-                if(option.id === field){
+                if(option.id === field.id){
                     return {
                         ...option,
                         value : ""
@@ -171,65 +118,17 @@ export function Form( props: {formState : number}){
                 return option;
             })
         ]);
-        
     }
 
-    const removeField = (id:string) => {
-        return setState({
-            ...state,
-            formFields : state.formFields.filter(field => field.label !== id),
-        });
+    const setUpOptions = () => {
+        setNewOption([
+            ...newOption,
+            {
+                id : state.formFields.length,
+                value : ""
+            }
+        ]);
     }
-
-    const updateField = (e:any, id:number) => {
-        const thisValue = e.target.value;
-        setState({
-            ...state,
-            formFields: state.formFields.map((field) => {
-                if(field.id === id){
-                    return {...field, label:thisValue };
-                }
-                return field;
-            }),
-        });
-    }
-
-    const updateOption = (e:any, qid:number, oid:number) => {
-        const optionValue = e.target.value;
-        setState({
-            ...state,
-            formFields: state.formFields.map((field)=>{
-                if(field.id === qid){
-                    switch (field.kind) {
-                        case "options":
-                            return {
-                                ...field,
-                                options : field.options.map((op, i)=>{
-                                    if(i === oid){
-                                        return optionValue;
-                                    }
-                                    return op;
-                                })
-                            };
-                        default :
-                            return field;
-                    }
-                }else{
-                    return field;
-                }
-            })
-        })
-    }
-
-    const emptyFields = () => {
-        window.confirm('All fields will be deleted, form will be reset. Are you sure you would like to continue?')?
-        setState({
-            ...state,
-            formFields: []
-        }) :
-        console.log('Form reset cancelled')
-    }
-
     const toolbar_button = "inline-flex w-[40px] bg-gray-800/70 rounded-xl h-[40px] justify-center items-center transition hover:bg-gray-800/40";
     const toolbar_button_extendable = "inline-flex bg-gray-800/70 rounded-xl h-[40px] justify-center items-center transition hover:bg-gray-800/40 px-4";
     
@@ -241,7 +140,7 @@ export function Form( props: {formState : number}){
                     className="text-3xl font-bold w-[300px] bg-transparent outline-0 border-b-[5px] border-b-gray-700 mb-10 py-3 transition focus:border-b-gray-200"
                     value={state.title}
                     onChange={e=>{
-                        setState({...state, title: e.target.value});
+                        dispatch({type:"update_title", title: e.target.value});
                     }}
                     placeholder="Form Title"
                     ref={titleRef}
@@ -250,7 +149,7 @@ export function Form( props: {formState : number}){
                     <Link href={`/preview/${state.id}`} className={toolbar_button_extendable} title="Preview">
                         <i className="far fa-eye"></i> &nbsp; Preview
                     </Link>
-                    <button className={toolbar_button} onClick={emptyFields} title="Remove all fields">
+                    <button className={toolbar_button} onClick={()=>dispatch({type:"empty_fields"})} title="Remove all fields">
                         <i className="far fa-empty-set"></i>
                     </button>
                     <Link className={toolbar_button} href="/home" title="Close Form">
@@ -260,7 +159,7 @@ export function Form( props: {formState : number}){
             </div>
             
             {state.formFields.map((field,i) => (
-                <div key = {i} className="flex items-center justify-center gap-1 mb-2">
+                <div key = {i} className="flex items-center justify-center gap-2 mb-2">
                     <div className="w-full pl-1">
                         <span className="text-gray-400">
                             {fieldTypesDisplay.filter(f=>f.type === field.type).map(fe=>fe.name)}
@@ -274,7 +173,7 @@ export function Form( props: {formState : number}){
                             placeholder="Field Name"
                             value={field.label}
                             onChange={e=>{
-                                updateField(e, i);
+                                dispatch({type : "update_field", element: e, field : field});
                             }}
                         />
                         {
@@ -287,20 +186,24 @@ export function Form( props: {formState : number}){
                                     <br/>
                                     {
                                         field.options.map((option,x)=> (
-                                            <input
-                                                key={x}
-                                                type="text"
-                                                placeholder="Option Name"
-                                                value={option}
-                                                className={input_style+' mb-2'}
-                                                onChange={e=>{
-                                                    updateOption(e,i,x)
-                                                }}
-                                            />
+                                            <div className="flex justify-between align-center gap-2" key={x}>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Option Name"
+                                                    value={option}
+                                                    className={input_style+' mb-2'}
+                                                    onChange={e=>{
+                                                        dispatch({type : "update_option", element: e, field: field, option: x})
+                                                    }}
+                                                />
+                                                <button className={toolbar_button+` hover:bg-red-600`} onClick={_=>dispatch({type: "delete_option", field : field, optionNumber : x})}>
+                                                    <i className="far fa-minus" />
+                                                </button>
+                                            </div>
+                                            
                                         ))
                                     }
-                                    <br/>
-                                    <div className="flex align-center justify-center gap-2">
+                                    <div className="flex align-center justify-center gap-2 mt-2">
                                         <input 
                                             type="text"
                                             placeholder="Add Option"
@@ -316,7 +219,7 @@ export function Form( props: {formState : number}){
                                                 ]);
                                             }}
                                         />
-                                        <button className={toolbar_button} onClick={()=>addOption(i)}>
+                                        <button className={toolbar_button} onClick={()=>dispatch({type : "add_option", field : field, optionState : newOption, callback : () => resetOptionField(field)})}>
                                             <i className="far fa-grid-2-plus" />
                                         </button>
                                     </div>
@@ -329,7 +232,7 @@ export function Form( props: {formState : number}){
                         }
                     </div>
                     <div>
-                        <button className={toolbar_button+` hover:bg-red-600`} onClick={_=>removeField(field.label)}>
+                        <button className={toolbar_button+` hover:bg-red-600`} onClick={_=>dispatch({type: "remove_field", field : field})}>
                             <i className="far fa-trash" />
                         </button>
                     </div>
@@ -359,7 +262,7 @@ export function Form( props: {formState : number}){
                     </select>
                 </div>
                 <div>
-                    <button className="cursor-pointer p-2 ml-0 bg-blue-700 hover:bg-blue-800 transition text-white rounded-lg w-[150px]" onClick={addField}>
+                    <button className="cursor-pointer p-2 ml-0 bg-blue-700 hover:bg-blue-800 transition text-white rounded-lg w-[150px]" onClick={()=>dispatch({type:"add_field", field: newField, callback :() => setNewField(defaultNewField), setUpOptions : setUpOptions})}>
                         <i className="far fa-plus" /> &nbsp; Add Field
                     </button>
                 </div>

@@ -1,41 +1,31 @@
-import React, { useState } from "react";
+import React, { useReducer, useState } from "react";
+import { previewReducer } from "../actions/PreviewActions";
+import { PreviewState } from "../types/PreviewTypes";
 import { getLocalForms } from "./Form"
 import PreviewQuestions from "./PreviewQuestions";
 
 export default function Preview(props : {formID : number}){
 
-    const [formState, setFormState] = useState(() => getLocalForms());
+    const formState = getLocalForms();
     const thisForm = formState.filter((form)=> form.id === props.formID)[0];
 
-    const [quizState, setQuizState] = useState(-1);
-    const [quizAnswers, setQuizAnswer] = useState<Array<string>>([]);
-    const [answerField, setAnswerField] = useState([]);
+    const defaultPreviewState : PreviewState = {
+        form : thisForm,
+        answers : [],
+        currentQuestion : -1,
+        answerField : []
+    }
+
+    const [previewState, previewDispatch] = useReducer(previewReducer, defaultPreviewState);
 
     let titleSize;
-    quizState < 0 ? titleSize = "text-5xl font-bold" : titleSize = "text-xl text-gray-400";
+    previewState.currentQuestion < 0 ? titleSize = "text-5xl font-bold" : titleSize = "text-xl text-gray-400";
     let titleStyles = `${titleSize} transition-all`;
 
-    const currentField = thisForm.formFields[quizState];
+    const currentField = thisForm.formFields[previewState.currentQuestion];
 
     let buttonText;
-    quizState + 1 === thisForm.formFields.length ? buttonText = 'Finish' : buttonText = 'Next Question';
-
-    const resetQuiz = () => {
-        setQuizState(-1);
-        setQuizAnswer([]);
-    }
-
-    const progressQuiz = () => {
-        const inputAnswer = answerField.join(', ');
-        console.log(answerField);
-        setQuizAnswer([
-            ...quizAnswers,
-            inputAnswer
-        ])
-        quizState === thisForm.formFields.length ? console.log('Form is over') : setQuizState(quizState + 1) ;
-        setAnswerField([]);
-        
-    }
+    previewState.currentQuestion + 1 === thisForm.formFields.length ? buttonText = 'Finish' : buttonText = 'Next Question';
     
     if(thisForm.formFields.length === 0){
         return (
@@ -63,10 +53,10 @@ export default function Preview(props : {formID : number}){
                     {thisForm.title}
                 </div>
                 {
-                    quizState < 0 || quizAnswers.length === thisForm.formFields.length ? (
+                    previewState.currentQuestion < 0 || previewState.answers.length === thisForm.formFields.length ? (
                         <>
                             {
-                                quizAnswers.length === thisForm.formFields.length ? 
+                                previewState.answers.length === thisForm.formFields.length ? 
                                 (
                                     <div className="mt-6">
                                         Thank you for participating!
@@ -75,7 +65,7 @@ export default function Preview(props : {formID : number}){
                                         <br/>
                                         <br/>
                                         {
-                                            quizAnswers.map((quiz, i)=>{
+                                            previewState.answers.map((quiz, i)=>{
                                                 return (
                                                     <div key={i} className="mb-3">
                                                         Q{i+1} : {thisForm.formFields[i].label}<br/>
@@ -87,7 +77,7 @@ export default function Preview(props : {formID : number}){
                                         <br/>
                                         <br/>
                                         <br/>
-                                        <button className="bg-blue-700 rounded-xl px-6 py-3 font-bold hover:bg-blue-800 transition hover:rounded-xl" onClick={()=>resetQuiz()}>
+                                        <button className="bg-blue-700 rounded-xl px-6 py-3 font-bold hover:bg-blue-800 transition hover:rounded-xl" onClick={()=>previewDispatch({type : "reset_quiz"})}>
                                             Give it another try! &nbsp; <i className="fal fa-chevron-right"></i>
                                         </button>
                                     </div>
@@ -99,7 +89,7 @@ export default function Preview(props : {formID : number}){
                                             Hello there! Thanks for filling <b>{thisForm.title}</b><br/>
                                             All you have to do is fill {thisForm.formFields.length} questions. It will take you around {thisForm.formFields.length * 30 / 60} minutes to finish this form.
                                         </div>
-                                        <button className="bg-blue-700 rounded-xl px-6 py-3 font-bold hover:bg-blue-800 transition hover:rounded-xl" onClick={()=>setQuizState(0)}>
+                                        <button className="bg-blue-700 rounded-xl px-6 py-3 font-bold hover:bg-blue-800 transition hover:rounded-xl" onClick={()=>previewDispatch({type : "set_quiz_field", fieldID : 0})}>
                                             Lets start! &nbsp; <i className="fal fa-chevron-right"></i>
                                         </button>
                                     </>
@@ -113,12 +103,10 @@ export default function Preview(props : {formID : number}){
                                 {currentField.label}
                             </div>
                             <div className="mt-12">
-                                {
-                                    <PreviewQuestions qs={currentField} af={answerField} sf = {setAnswerField}/>
-                                }
+                                <PreviewQuestions qs={currentField} previewState={previewState} previewDispatch = {previewDispatch}/>
                                 <br/>
                                 <br/>
-                                <button className="bg-blue-700 rounded-xl px-6 py-3 font-bold hover:bg-blue-800 transition hover:rounded-xl" onClick={()=>progressQuiz()}>
+                                <button className="bg-blue-700 rounded-xl px-6 py-3 font-bold hover:bg-blue-800 transition hover:rounded-xl" onClick={()=>previewDispatch({type:"progress_quiz"})}>
                                     {buttonText} &nbsp; <i className="fal fa-chevron-right"></i>
                                 </button>
                             </div>
