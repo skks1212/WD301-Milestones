@@ -32,7 +32,7 @@ type AddOptionAction = {
     type : "add_option",
     field : formField,
     optionState : optionsField[],
-    callback? : (...args: any[]) => void
+    callback? : (...args: optionsField[]) => void
 };
 
 type UpdateOptionAction = {

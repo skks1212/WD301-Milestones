@@ -69,7 +69,7 @@ export const reducer = (state : formData, action : formAction) => {
         case "add_option" : {
             const optionValue = action.optionState.filter(f=>f.id === action.field.id).map(fe=>fe.value)[0];
             console.log(action);
-            action.callback?.(action.field);
+            action.callback?.();
             //return state;
             return {
                 ...state,
