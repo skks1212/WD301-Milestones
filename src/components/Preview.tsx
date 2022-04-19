@@ -1,16 +1,29 @@
-import React, { useReducer, useState } from "react";
+import React, { useEffect, useReducer } from "react";
 import { previewReducer } from "../actions/PreviewActions";
+import { apiFormFields, apiFormWithFields } from "../types/FormTypes";
 import { PreviewState } from "../types/PreviewTypes";
-import { getLocalForms } from "./Form"
+import { API } from "../utils/api";
 import PreviewQuestions from "./PreviewQuestions";
 
 export default function Preview(props : {formID : number}){
 
-    const formState = getLocalForms();
-    const thisForm = formState.filter((form)=> form.id === props.formID)[0];
+    //const formState = getLocalForms();
+    //const thisForm = formState.filter((form)=> form.id === props.formID)[0];
+
+    const getForm = async (formID : number) => {
+        const form = await API.form.get(formID);
+        const formFields = await API.form.getFields(formID);
+        previewDispatch({type : "set_form", form : form});
+        previewDispatch({type : "set_form_fields", formFields : formFields.results});
+    }
+
+    const defaultForm : apiFormWithFields = {
+        title : "Loading",
+        formFields : []
+    }
 
     const defaultPreviewState : PreviewState = {
-        form : thisForm,
+        form : defaultForm,
         answers : [],
         currentQuestion : -1,
         answerField : []
@@ -18,19 +31,29 @@ export default function Preview(props : {formID : number}){
 
     const [previewState, previewDispatch] = useReducer(previewReducer, defaultPreviewState);
 
+    useEffect(()=>{
+        getForm(props.formID);
+    },[])
+
     let titleSize;
     previewState.currentQuestion < 0 ? titleSize = "text-5xl font-bold" : titleSize = "text-xl text-gray-400";
     let titleStyles = `${titleSize} transition-all`;
 
-    const currentField = thisForm.formFields[previewState.currentQuestion];
+    const currentField = previewState.form.formFields[previewState.currentQuestion];
 
     let buttonText;
-    previewState.currentQuestion + 1 === thisForm.formFields.length ? buttonText = 'Finish' : buttonText = 'Next Question';
+    previewState.currentQuestion + 1 === previewState.form.formFields.length ? buttonText = 'Finish' : buttonText = 'Next Question';
     
-    if(thisForm.formFields.length === 0){
+    if(previewState.form.formFields.length === 0 && previewState.form.title !== 'Loading'){
         return (
             <div>
                 Your form does not have any questions. Add a question to preview your form!
+            </div>
+        );
+    }else if(previewState.form.title === 'Loading'){
+        return (
+            <div>
+                Loading form.
             </div>
         );
     }
@@ -40,7 +63,7 @@ export default function Preview(props : {formID : number}){
             <div className="text-center">
                 <div className=" inline-flex gap-2 mb-6 text-xs">
                     {
-                        thisForm.formFields.map((field, i)=> {
+                        previewState.form.formFields.map((field : apiFormFields, i : number)=> {
                             let tColor;
                             field.id === currentField?.id ? tColor = "text-blue-800" : tColor = "text-gray-700";
                             return (
@@ -50,13 +73,13 @@ export default function Preview(props : {formID : number}){
                     }
                 </div>
                 <div className={titleStyles}>
-                    {thisForm.title}
+                    {previewState.form.title}
                 </div>
                 {
-                    previewState.currentQuestion < 0 || previewState.answers.length === thisForm.formFields.length ? (
+                    previewState.currentQuestion < 0 || previewState.answers.length === previewState.form.formFields.length ? (
                         <>
                             {
-                                previewState.answers.length === thisForm.formFields.length ? 
+                                previewState.answers.length === previewState.form.formFields.length ? 
                                 (
                                     <div className="mt-6">
                                         Thank you for participating!
@@ -68,7 +91,7 @@ export default function Preview(props : {formID : number}){
                                             previewState.answers.map((quiz, i)=>{
                                                 return (
                                                     <div key={i} className="mb-3">
-                                                        Q{i+1} : {thisForm.formFields[i].label}<br/>
+                                                        Q{i+1} : {previewState.form.formFields[i].label}<br/>
                                                         A{i+1} : {quiz} 
                                                     </div>
                                                 );
@@ -86,8 +109,8 @@ export default function Preview(props : {formID : number}){
                                 (
                                     <>
                                         <div className="mt-6 mb-36 text-gray-300">
-                                            Hello there! Thanks for filling <b>{thisForm.title}</b><br/>
-                                            All you have to do is fill {thisForm.formFields.length} questions. It will take you around {thisForm.formFields.length * 30 / 60} minutes to finish this form.
+                                            Hello there! Thanks for filling <b>{previewState.form.title}</b><br/>
+                                            All you have to do is fill {previewState.form.formFields.length} questions. It will take you around {previewState.form.formFields.length * 30 / 60} minutes to finish this form.
                                         </div>
                                         <button className="bg-blue-700 rounded-xl px-6 py-3 font-bold hover:bg-blue-800 transition hover:rounded-xl" onClick={()=>previewDispatch({type : "set_quiz_field", fieldID : 0})}>
                                             Lets start! &nbsp; <i className="fal fa-chevron-right"></i>

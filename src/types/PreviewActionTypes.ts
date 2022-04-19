@@ -1,3 +1,5 @@
+import { apiForm, apiFormFields } from "./FormTypes";
+
 type ProgressQuizAction = {
     type : "progress_quiz",
     callback? : () => void 
@@ -22,9 +24,21 @@ type SetQuizAnswer = {
     answer : string
 }
 
+type SetQuizForm = {
+    type : "set_form",
+    form : apiForm
+}
+
+type SetQuizFormFields = {
+    type : "set_form_fields",
+    formFields : apiFormFields
+}
+
 export type PreviewAction = 
     ProgressQuizAction
     | ResetQuizAction
     | SetQuizFieldAction
     | AddQuizOptionAnswer
     | SetQuizAnswer
+    | SetQuizForm
+    | SetQuizFormFields

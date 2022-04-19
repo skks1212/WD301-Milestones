@@ -1,5 +1,5 @@
 import { newField, optionsField } from "../components/Form";
-import { formField } from "./FormTypes";
+import { apiFormFields, apiFormSingular, formField } from "./FormTypes";
 
 type UpdateTitleAction = {
     type : "update_title",
@@ -15,13 +15,13 @@ type AddFieldAction = {
 
 type RemoveFieldAction = {
     type : "remove_field",
-    field : formField
+    field : apiFormFields
 };
 
 type UpdateFieldAction = {
     type : "update_field",
     element : React.ChangeEvent<HTMLInputElement>,
-    field : formField
+    field : apiFormFields
 };
 
 type EmptyFieldsAction = {
@@ -30,7 +30,7 @@ type EmptyFieldsAction = {
 
 type AddOptionAction = {
     type : "add_option",
-    field : formField,
+    field : apiFormFields,
     optionState : optionsField[],
     callback? : () => void
 };
@@ -38,16 +38,25 @@ type AddOptionAction = {
 type UpdateOptionAction = {
     type : "update_option",
     element : React.ChangeEvent<HTMLInputElement>,
-    field : formField,
+    field : apiFormFields,
     option : number
 };
 
 type DeleteOptionAction = {
     type : "delete_option",
-    field : formField,
+    field : apiFormFields,
     optionNumber : number
 }
 
+type SetFormAction = {
+    type : "set_form",
+    form : apiFormSingular
+}
+
+type SetFormFields = {
+    type : "set_form_fields",
+    formFields : apiFormFields[]
+}
 
 export type formAction = 
     UpdateTitleAction 
@@ -58,4 +67,6 @@ export type formAction =
     | AddOptionAction
     | UpdateOptionAction
     | DeleteOptionAction
+    | SetFormAction
+    | SetFormFields
 

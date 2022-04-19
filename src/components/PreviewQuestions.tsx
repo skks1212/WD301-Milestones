@@ -1,18 +1,18 @@
-import React, { useRef } from "react";
-import { formField } from "../types/FormTypes";
+import React from "react";
+import { apiFormFields} from "../types/FormTypes";
 import { PreviewState } from "../types/PreviewTypes";
 import { input_style } from "./Form";
 
-export default function PreviewQuestions(props: {qs : formField, previewState : PreviewState, previewDispatch : Function}){
+export default function PreviewQuestions(props: {qs : apiFormFields, previewState : PreviewState, previewDispatch : Function}){
     const currentField = props.qs;
     const previewState = props.previewState;
     const previewDispatch = props.previewDispatch;
 
-    const multiselectRef = useRef<HTMLInputElement>(null);
+    //const multiselectRef = useRef<HTMLInputElement>(null);
 
-    let multiOn = false;
+    //let multiOn = false;
 
-    const toggleMulti = () => {
+    /*const toggleMulti = () => {
         let classAdd = '';
         !multiOn ?
         classAdd = 'absolute top-[44px] inset-x-0 h-max-[150px] overflow-auto bg-gray-700 flex flex-col' : 
@@ -27,14 +27,13 @@ export default function PreviewQuestions(props: {qs : formField, previewState : 
 
     const AddOptionAnswer = (value : string) => {
         previewDispatch({type: "add_option_answer", answer : value});
-    }
+    }*/
 
-    switch (currentField.type) {
-        case "text":
-        case "date":
+    switch (currentField.kind) {
+        case "TEXT":
             return (
                 <input 
-                    type={currentField.type}
+                    type="text"
                     placeholder="Your Answer..."
                     className="text-2xl bg-gray-800 py-4 px-7 rounded-xl outline-none"
                     value={previewState.answerField}
@@ -43,142 +42,57 @@ export default function PreviewQuestions(props: {qs : formField, previewState : 
                     }}
                 />
             );
-        
-        case "textarea" : 
+        case "DROPDOWN" : {
+            
+            
             return (
-                <textarea 
-                    placeholder="Your Answer..." 
-                    className="text-2xl bg-gray-800 py-4 px-7 rounded-xl outline-none"
-                    value={previewState.answerField}
+                <select
+                    value={previewState.answerField[0]}
                     onChange={e=>{
                         previewDispatch({type : "set_answer", answer : e.target.value})
                     }}
-                />
+                    className={input_style}
+                >
+                {
+                    currentField.options ? currentField.options.map((option, i)=>{
+                        return (
+                            <option value={option} key={i}>
+                                {option}
+                            </option>)
+                        }) : ""
+                }
+                </select>
             )
-        case "select" : 
-            switch (currentField.kind) {
-                case "options":
-                    return (
-                        <select
-                            value={previewState.answerField}
-                            onChange={e=>{
-                                previewDispatch({type : "set_answer", answer : e.target.value})
-                            }}
-                            className={input_style}
-                        >
-                            {
-                                currentField.options.map((option, i)=>{
-                                    return (<option value={option} key={i}>
-                                        {option}
-                                    </option>)
-                                })
-                            }
-                        </select>
-                    )
+        }
             
-                default:
-                    return <div></div>
-            }
-            
-        case "radio" : 
-            switch (currentField.kind) {
-                case "options":
-                    return (
-                        <>
-                            {
-                                currentField.options.map((option, i)=>{
-                                    return (
-                                        <label key={i} className="text-2xl block">
-                                            <input 
-                                                type={currentField.type}
-                                                value={option}
-                                                onChange={e=>{
-                                                    previewDispatch({type : "set_answer", answer : e.target.value})
-                                                }}
-                                                name={"input_"+currentField.id}
-                                            />
-                                            {option}
-                                        </label>
-                                    )
-                                })
-                            }
-                        </>
-                    )
-            
-                default:
-                    return <div></div>
-            }
-
-        case "checkbox" : 
-            switch (currentField.kind) {
-                case "options":
-                    return (
-                        <>
-                            {
-                                currentField.options.map((option, i)=>{
-                                    return (
-                                        <label key={i} className="text-2xl block">
-                                            <input 
-                                                type={currentField.type}
-                                                value={option}
-                                                onChange={e=>{
-                                                    AddOptionAnswer(e.target.value)
-                                                }}
-                                                name={"input_"+currentField.id}
-                                            />
-                                            {option}
-                                        </label>
-                                    )
-                                })
-                            }
-                        </>
-                    )
-                
-                default:
-                    return <div></div>
-            }
-        case "multiselect" : 
-            switch (currentField.kind) {
-                case "options":
-                    return (
-                        <div className={input_style + ' relative w-[200px] cursor-pointer'}>
-                            <div className="flex items-center justify-between" onClick={()=> toggleMulti()}>
-                                <span>
-                                    {previewState.answerField.length > 0 ? previewState.answerField.join(', ') : (<span className="text-gray-500">Nothing Selected</span>)}
-                                </span>
-                                <i className="far fa-chevron-down"/>
-                            </div>
-                            <div className="absolute top-0 inset-x-0 h-[0] overflow-hidden" ref={multiselectRef}>
-
-                            {
-                                currentField.options.map((option, i)=>{
-                                    return (
-                                        <label key={i} className="text-2xl flex justify-between items-center px-4 py-2 hover:bg-gray-600/40">
-                                            <input 
-                                                type='checkbox'
-                                                value={option}
-                                                onChange={e=>{
-                                                    AddOptionAnswer(e.target.value)
-                                                }}
-                                                name={"input_"+currentField.id}
-                                            />
-                                            {option}
-                                        </label>
-                                    )
-                                })
-                            }
-                            </div>
-                        </div>
-                    )
-                
-                default:
-                    return <div></div>
-            }
+        case "RADIO" : {
+            return (
+                <>
+                    {
+                        currentField.options ? currentField.options.map((option, i)=>{
+                            return (
+                                <label key={i} className="text-2xl block">
+                                    <input 
+                                        type="radio"
+                                        value={option}
+                                        onChange={e=>{
+                                            previewDispatch({type : "set_answer", answer : e.target.value})
+                                        }}
+                                        name={"input_"+currentField.id}
+                                    />
+                                    {option}
+                                </label>
+                            )
+                        }) : ""
+                    }
+                </>
+            )
+        }
             
         default:
             return (
                 <div>
-
+                    Error in loading option
                 </div>
             );
     }

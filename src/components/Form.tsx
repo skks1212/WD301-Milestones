@@ -1,15 +1,14 @@
-import { Link, navigate } from "raviger";
+import { Link } from "raviger";
 import React, {useState, useEffect, useRef, useReducer} from "react";
 import { reducer } from "../actions/FormActions";
-import { fieldTypesDisplay, formField } from "../types/FormTypes";
+import { apiFormFields, apiFormWithFields, fieldTypesDisplay, formField } from "../types/FormTypes";
+import { API } from "../utils/api";
 
 export interface formData {
     id : number,
     title : string,
     formFields : formField[];
 }
-
-const formFields : formField[] = [];
 
 export const getLocalForms: () => formData[] = () => {
     const savedFormsJSON = localStorage.getItem("savedForms");
@@ -18,40 +17,11 @@ export const getLocalForms: () => formData[] = () => {
         : [];
 }
 
-const initialState: (formID : number) => formData = (formID : number) => {
-    const localForms = getLocalForms();
-
-    //find form if exists
-    const checkForm = localForms.find((form)=>form.id === formID);
-    if(checkForm && formID !== 0){
-        return checkForm;
-    }
-
-    const newForm = {
-        id : Number(new Date()),
-        title : "Untitled Form",
-        formFields : formFields
-    }
-    
-    const updatedToSave = [...localForms, newForm];
-    saveLocalForms(updatedToSave);
-    
-    return newForm;
-    
-}
-
 export const saveLocalForms = (localForms: formData[]) => {
     localStorage.setItem("savedForms", JSON.stringify(localForms));
 }
 
-const saveFormData = (currentState: formData) => {
-    const localForms = getLocalForms();
-    
-    const updatedLocalForms = localForms.map((form) => 
-        form.id === currentState.id ? currentState : form
-    );
-    saveLocalForms(updatedLocalForms);
-}
+
 
 export interface newField {
     value : string,
@@ -74,26 +44,54 @@ export const input_style = 'border-2 bg-gray-800/70 border-gray-800 rounded-xl p
 
 export function Form( props: {formState : number}){
 
-    const [state, dispatch] = useReducer(reducer, null, () => initialState(props.formState));
+    const defaultForm : apiFormWithFields = {
+        title : "Loading",
+        formFields : []
+    }
+
+    const [state, dispatch] = useReducer(reducer, defaultForm);
     const [newField, setNewField] = useState(defaultNewField);
     const [newOption, setNewOption] = useState(defaultOptions);
 
     const titleRef = useRef<HTMLInputElement>(null);
-    
-    
 
-    useEffect(() => {
-        state.id !== props.formState && navigate(`/form/${state.id}`);
-    }, [state.id, props.formState]);
+    const saveFormData = async (currentState: apiFormWithFields) => {
+        if(currentState !== defaultForm){
+            const saved = await API.form.saveForm(currentState);
+            const savedFields = await currentState.formFields.map(async (field : apiFormFields)=>{
+                return await API.form.saveField(state.id ? state.id : 0 , field);
+            })
+            if (saved && savedFields){
+                console.log("Saved")
+            }
+        }
+    }
+    
+    const getForm = async (formID : number) => {
+        const form = await API.form.get(formID);
+        const formFields = await API.form.getFields(formID);
+        dispatch({type : "set_form", form : form});
+        dispatch({type : "set_form_fields", formFields : formFields.results});
+    }
+
+    const deleteField = async (field : apiFormFields) => {
+        dispatch({type: "remove_field", field : field});
+        const deleteFields = await API.form.deleteField(state.id ? state.id : 0, field);
+        if(deleteFields){
+            console.log('Deleted Fields');
+        }
+        
+    }
 
     useEffect( () => {
         console.log("%cComponent Mounted", "color:grey;");
         document.title = "Form Editor";
         titleRef.current?.focus();
+        getForm(props.formState);
         return () => {
             document.title = "Formify";
         }
-    }, []);
+    },[]);
 
     useEffect(() => {
         let timeout = setTimeout(() => {
@@ -106,7 +104,7 @@ export function Form( props: {formState : number}){
         }
     }, [state]);
 
-    const resetOptionField = (field : formField) => {
+    const resetOptionField = (field : apiFormFields) => {
         setNewOption([
             ...newOption.map(option=>{
                 if(option.id === field.id){
@@ -129,6 +127,23 @@ export function Form( props: {formState : number}){
             }
         ]);
     }
+
+    const addOption = (field : apiFormFields, option : optionsField[]) => {
+        dispatch({type : "add_option", field : field, optionState : option, callback : () => resetOptionField(field)})
+    }
+
+    const postFormFields = async (formField : newField) => {
+        console.log(formField);
+        let addObject : apiFormFields = {
+            kind : formField.type === "TEXT" || formField.type === "DROPDOWN" || formField.type === "RADIO" || formField.type === "GENERIC" ? formField.type : "TEXT" ,
+            id : state.formFields.length,
+            label : formField.value,
+            options : formField.type !== "TEXT" ? [] : null
+        };
+        const posted = await API.form.addField(state.id ? state.id : 0, addObject );
+        dispatch({type:"add_field", field: posted, callback : () => setNewField(defaultNewField), setUpOptions : setUpOptions})
+    }
+
     const toolbar_button = "inline-flex w-[40px] bg-gray-800/70 rounded-xl h-[40px] justify-center items-center transition hover:bg-gray-800/40";
     const toolbar_button_extendable = "inline-flex bg-gray-800/70 rounded-xl h-[40px] justify-center items-center transition hover:bg-gray-800/40 px-4";
     
@@ -146,8 +161,11 @@ export function Form( props: {formState : number}){
                     ref={titleRef}
                 />
                 <div className="flex gap-3">
-                    <Link href={`/preview/${state.id}`} className={toolbar_button_extendable} title="Preview">
+                    <Link href={`/form/${state.id}/preview`} className={toolbar_button_extendable} title="Preview">
                         <i className="far fa-eye"></i> &nbsp; Preview
+                    </Link>
+                    <Link href={`/form/${state.id}/submissions`} className={toolbar_button_extendable} title="Submissions">
+                        <i className="far fa-list"></i> &nbsp; Submissions
                     </Link>
                     <button className={toolbar_button} onClick={()=>dispatch({type:"empty_fields"})} title="Remove all fields">
                         <i className="far fa-empty-set"></i>
@@ -157,12 +175,11 @@ export function Form( props: {formState : number}){
                     </Link>
                 </div>
             </div>
-            
-            {state.formFields.map((field,i) => (
+            {state.formFields.map((field : apiFormFields, i : number) => (
                 <div key = {i} className="flex items-center justify-center gap-2 mb-2">
                     <div className="w-full pl-1">
                         <span className="text-gray-400">
-                            {fieldTypesDisplay.filter(f=>f.type === field.type).map(fe=>fe.name)}
+                            {field.kind}
                         </span>
                         <br/>
                         <input 
@@ -177,7 +194,7 @@ export function Form( props: {formState : number}){
                             }}
                         />
                         {
-                            field.kind === 'options' ?
+                            field.kind === 'DROPDOWN' || field.kind === "RADIO" ?
                             (
                                 <div className="ml-4 border-l-2 border-gray-800 pl-4 mt-3">
                                     <small className="text-gray-400">
@@ -185,7 +202,7 @@ export function Form( props: {formState : number}){
                                     </small>
                                     <br/>
                                     {
-                                        field.options.map((option,x)=> (
+                                        field.options ? field.options.map((option : string,x:number)=> (
                                             <div className="flex justify-between align-center gap-2" key={x}>
                                                 <input
                                                     type="text"
@@ -200,8 +217,8 @@ export function Form( props: {formState : number}){
                                                     <i className="far fa-minus" />
                                                 </button>
                                             </div>
-                                            
-                                        ))
+                                        )) : 
+                                        ""
                                     }
                                     <div className="flex align-center justify-center gap-2 mt-2">
                                         <input 
@@ -213,13 +230,13 @@ export function Form( props: {formState : number}){
                                                 setNewOption([
                                                     ...newOption.filter(f=>f.id !== field.id),
                                                     {
-                                                        id : i,
+                                                        id : field.id ? field.id : 0,
                                                         value : e.target.value
                                                     }
                                                 ]);
                                             }}
                                         />
-                                        <button className={toolbar_button} onClick={()=>dispatch({type : "add_option", field : field, optionState : newOption, callback : () => resetOptionField(field)})}>
+                                        <button className={toolbar_button} onClick={()=>addOption(field, newOption)}>
                                             <i className="far fa-grid-2-plus" />
                                         </button>
                                     </div>
@@ -232,7 +249,7 @@ export function Form( props: {formState : number}){
                         }
                     </div>
                     <div>
-                        <button className={toolbar_button+` hover:bg-red-600`} onClick={_=>dispatch({type: "remove_field", field : field})}>
+                        <button className={toolbar_button+` hover:bg-red-600`} onClick={_=>deleteField(field)}>
                             <i className="far fa-trash" />
                         </button>
                     </div>
@@ -262,7 +279,7 @@ export function Form( props: {formState : number}){
                     </select>
                 </div>
                 <div>
-                    <button className="cursor-pointer p-2 ml-0 bg-blue-700 hover:bg-blue-800 transition text-white rounded-lg w-[150px]" onClick={()=>dispatch({type:"add_field", field: newField, callback :() => setNewField(defaultNewField), setUpOptions : setUpOptions})}>
+                    <button className="cursor-pointer p-2 ml-0 bg-blue-700 hover:bg-blue-800 transition text-white rounded-lg w-[150px]" onClick={()=>postFormFields(newField)}>
                         <i className="far fa-plus" /> &nbsp; Add Field
                     </button>
                 </div>

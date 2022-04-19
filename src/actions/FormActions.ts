@@ -1,8 +1,8 @@
-import { formData } from "../components/Form";
 import { formAction } from "../types/FormActionTypes";
-import { formField, optionTypes } from "../types/FormTypes";
+import { apiFormFields, apiFormWithFields, optionTypes } from "../types/FormTypes";
+import { API } from "../utils/api";
 
-export const reducer = (state : formData, action : formAction) => {
+export const reducer = (state : apiFormWithFields, action : formAction) => {
     switch(action.type){
         case "update_title" : {
             return {
@@ -11,42 +11,30 @@ export const reducer = (state : formData, action : formAction) => {
             }
         }
         case "add_field" : {
-            let addObject : formField = {
-                kind : "text",
-                id : state.formFields.length,
-                label : action.field.value,
-                type: action.field.type
-            };
-    
             if(optionTypes.includes(action.field.type)){
-                addObject = {...addObject, kind : 'options', options : []};
                 action.setUpOptions();
             }
-    
-            if(action.field.value && action.field.value !== '' && action.field.value !== '{}'){
-                action.callback?.();
-                return {
-                    ...state,
-                    formFields : [
-                        ...state.formFields,
-                        addObject
-                    ]
-                };
-                
-            }
-            return state;
+
+            action.callback?.();
+            return {
+                ...state,
+                formFields : [
+                    ...state.formFields,
+                    action.field
+                ]
+            };
         }
         case "remove_field" : {
             return {
                 ...state,
-                formFields : state.formFields.filter(field => field.id !== action.field.id)
+                formFields : state.formFields.filter((field : apiFormFields) => field.id !== action.field.id)
             };
         }
         case "update_field" : {
             const thisValue = action.element.target.value;
             return {
                 ...state,
-                formFields: state.formFields.map((field) => {
+                formFields: state.formFields.map((field : apiFormFields) => {
                     if(field.id === action.field.id){
                         return {...field, label:thisValue };
                     }
@@ -57,6 +45,13 @@ export const reducer = (state : formData, action : formAction) => {
         case "empty_fields" : {
             const conf = window.confirm('All fields will be deleted, form will be reset. Are you sure you would like to continue?');
             if(conf){
+                const hehe = async ()=>{
+                    const savedFields = await state.formFields.map(async (field : apiFormFields)=>{
+                        return await API.form.deleteField(state.id ? state.id : 0 , field);
+                    })
+                    return savedFields;
+                }
+                hehe();
                 return {
                     ...state,
                     formFields: []
@@ -73,16 +68,17 @@ export const reducer = (state : formData, action : formAction) => {
             //return state;
             return {
                 ...state,
-                formFields : state.formFields.map(f=>{
+                formFields : state.formFields.map((f : apiFormFields)=>{
                     if(f.id === action.field.id){
                         switch (f.kind) {
-                            case "options":
+                            case "DROPDOWN":
+                            case "RADIO" :
                                 return {
                                     ...f,
-                                    options : [
+                                    options : f.options ? [
                                         ...f.options,
                                         optionValue
-                                    ]
+                                    ] : []
                                 }
                             default :
                                 return f;
@@ -96,18 +92,19 @@ export const reducer = (state : formData, action : formAction) => {
             const optionValue = action.element.target.value;
             return {
                 ...state,
-                formFields: state.formFields.map((field)=>{
+                formFields: state.formFields.map((field : apiFormFields)=>{
                     if(field.id === action.field.id){
                         switch (field.kind) {
-                            case "options":{
+                            case "DROPDOWN":
+                            case "RADIO" :{
                                 return {
                                     ...field,
-                                    options : field.options.map((op, i)=>{
+                                    options : field.options ? field.options.map((op : string, i : number)=>{
                                         if(i === action.option){
                                             return optionValue;
                                         }
                                         return op;
-                                    })
+                                    }) : []
                                 };
                             }
                             default :{
@@ -123,13 +120,14 @@ export const reducer = (state : formData, action : formAction) => {
         case "delete_option":{
             return {
                 ...state,
-                formFields: state.formFields.map((field)=>{
+                formFields: state.formFields.map((field : apiFormFields)=>{
                     if(field.id === action.field.id){
                         switch (field.kind) {
-                            case "options":{
+                            case "DROPDOWN":
+                            case "RADIO" :{
                                 return {
                                     ...field,
-                                    options : field.options.filter((op, i)=>i !== action.optionNumber)
+                                    options : field.options ? field.options.filter((op : string, i : number)=>i !== action.optionNumber) : []
                                 };
                             }
                             default :{
@@ -142,8 +140,36 @@ export const reducer = (state : formData, action : formAction) => {
                 })
             }
         }
+        case "set_form" : {
+            return {
+                ...action.form,
+                formFields : []
+            }
+        }
+        case "set_form_fields" : {
+            const sortedFields = action.formFields.sort((a, b) => {
+                return a.id && b.id ? 
+                a.id - b.id : 
+                0
+            });
+            const optionedFields = sortedFields.map(field=>{
+                let options = field.options;
+                if(field.kind !== "TEXT" && options === null){
+                    options = [];
+                }
+                return {
+                    ...field,
+                    options
+                }
+            });
+            return {
+                ...state,
+                formFields : optionedFields
+            }
+        }
         default : {
             return state;
         }
     }
 }
+
