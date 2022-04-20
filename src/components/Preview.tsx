@@ -72,16 +72,16 @@ export default function Preview(props : {formID : number}){
                         })
                     }
                 </div>
-                <div className={titleStyles}>
+                <h1 className={titleStyles} tabIndex={0}>
                     {previewState.form.title}
-                </div>
+                </h1>
                 {
                     previewState.currentQuestion < 0 || previewState.answers.length === previewState.form.formFields.length ? (
                         <>
                             {
                                 previewState.answers.length === previewState.form.formFields.length ? 
                                 (
-                                    <div className="mt-6">
+                                    <div className="mt-6" tabIndex={0}>
                                         Thank you for participating!
                                         <br/>
                                         Here are your results :
@@ -107,7 +107,7 @@ export default function Preview(props : {formID : number}){
                                 )
                                 :
                                 (
-                                    <>
+                                    <div tabIndex={0}>
                                         <div className="mt-6 mb-36 text-gray-300">
                                             Hello there! Thanks for filling <b>{previewState.form.title}</b><br/>
                                             All you have to do is fill {previewState.form.formFields.length} questions. It will take you around {previewState.form.formFields.length * 30 / 60} minutes to finish this form.
@@ -115,14 +115,14 @@ export default function Preview(props : {formID : number}){
                                         <button className="bg-blue-700 rounded-xl px-6 py-3 font-bold hover:bg-blue-800 transition hover:rounded-xl" onClick={()=>previewDispatch({type : "set_quiz_field", fieldID : 0})}>
                                             Lets start! &nbsp; <i className="fal fa-chevron-right"></i>
                                         </button>
-                                    </>
+                                    </div>
                                 )
                             }
                             
                         </>
                     ) : (
                         <>
-                            <div className="text-4xl font-bold">
+                            <div className="text-4xl font-bold" tabIndex={0}>
                                 {currentField.label}
                             </div>
                             <div className="mt-12">

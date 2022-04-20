@@ -1,3 +1,4 @@
+import { DropResult } from "react-beautiful-dnd";
 import { newField, optionsField } from "../components/Form";
 import { apiFormFields, apiFormSingular, formField } from "./FormTypes";
 
@@ -55,7 +56,14 @@ type SetFormAction = {
 
 type SetFormFields = {
     type : "set_form_fields",
-    formFields : apiFormFields[]
+    formFields : apiFormFields[],
+    orderState : number[]
+    callback? : (ostate : number[]) => void
+}
+
+type SetOrder = {
+    type : "set_order",
+    order : number[]
 }
 
 export type formAction = 
@@ -69,4 +77,5 @@ export type formAction =
     | DeleteOptionAction
     | SetFormAction
     | SetFormFields
+    | SetOrder
 

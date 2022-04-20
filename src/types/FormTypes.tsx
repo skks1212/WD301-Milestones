@@ -38,9 +38,7 @@ export type apiFormFields = {
     kind : "TEXT" | "DROPDOWN" | "RADIO" | "GENERIC",
     options? : string[] | null,
     value? : string,
-    meta? : {
-        description? : string
-    }
+    meta? : number[]
 };
 
 export type apiFormWithFields = apiFormSingular & {formFields: any};

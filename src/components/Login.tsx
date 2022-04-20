@@ -30,14 +30,14 @@ export default function Login () {
 
     return (
         <div className="w-[400px] ml-[calc(50%-200px)]">
-            <h1 className="text-5xl font-bold">
+            <h1 className="text-5xl font-bold" tabIndex={0}>
                 Login
             </h1>
             <br/>
             <br/>
 
             <form onSubmit={(e)=>handleSubmit(e)}>
-                {errorMessage}
+                {errorMessage && <div tabIndex={0}>{errorMessage}</div>}
                 <input
                     type="text"
                     className={input_style}

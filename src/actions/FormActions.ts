@@ -152,6 +152,9 @@ export const reducer = (state : apiFormWithFields, action : formAction) => {
                 a.id - b.id : 
                 0
             });
+            const metaSort = action.formFields[0].meta;
+            const sortOrder = !metaSort ? sortedFields.map(f=>f.id ? f.id : 0) : metaSort;
+            
             const optionedFields = sortedFields.map(field=>{
                 let options = field.options;
                 if(field.kind !== "TEXT" && options === null){
@@ -162,9 +165,21 @@ export const reducer = (state : apiFormWithFields, action : formAction) => {
                     options
                 }
             });
+            action.callback?.(sortOrder);
             return {
                 ...state,
                 formFields : optionedFields
+            }
+        }
+        case "set_order" : {
+            return {
+                ...state,
+                formFields : state.formFields.map((f : apiFormFields)=>{
+                    return {
+                        ...f,
+                        meta : action.order
+                    }
+                })
             }
         }
         default : {

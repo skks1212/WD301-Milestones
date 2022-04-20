@@ -68,7 +68,7 @@ export function Home(props : {}) {
                 ""
             }
             <div className="flex justify-between">
-                <h1 className="text-5xl font-bold">
+                <h1 className="text-5xl font-bold" tabIndex={0}>
                     My Forms
                 </h1>
                 <form onSubmit={(e) => {
@@ -90,33 +90,35 @@ export function Home(props : {}) {
             
             <br/>
             
-            <div className="flex flex-wrap justify-center gap-3 p-3">
+            <ul className="flex flex-wrap justify-center gap-3 p-3">
                 
                 {
                     state.filter((form)=> form.title.toLowerCase().includes(search?.toLowerCase() || "")).map((form : apiRecieveForm, i:number) => (
-                        <div key={i} className="border-2 border-gray-800 rounded-lg min-w-[200px]">
+                        <li key={i} className="border-2 border-gray-800 rounded-lg min-w-[200px]">
                             <div className="px-6 py-4">
-                                <b className="text-xl">
+                                <b className="text-xl" tabIndex={0}>
                                     {form.title}
                                 </b>
                                 <br/>
-                                {form.description}
+                                <span tabIndex={0}>
+                                    {form.description}
+                                </span>
                             </div>
                             <div className="flex">
-                                <Link href={'/form/'+form.id} className="flex-1 text-center py-3 border-t-2 border-gray-800 hover:bg-blue-700 transition hover:border-blue-700">
+                                <Link href={'/form/'+form.id} className="flex-1 text-center py-3 border-t-2 border-gray-800 hover:bg-blue-700 transition hover:border-blue-700" title="Edit Form">
                                     <i className="far fa-pen"></i>
                                 </Link>
-                                <Link href={'/form/'+form.id+'/preview'} className="flex-1 text-center py-3 border-t-2 border-l-2 border-gray-800 hover:bg-blue-700 transition hover:border-blue-700">
+                                <Link href={'/form/'+form.id+'/preview'} className="flex-1 text-center py-3 border-t-2 border-l-2 border-gray-800 hover:bg-blue-700 transition hover:border-blue-700" title="Preview Form">
                                     <i className="far fa-eye"></i>
                                 </Link>
-                                <Link href={'/form/'+form.id+'/submissions'} className="flex-1 text-center py-3 border-t-2 border-l-2 border-gray-800 hover:bg-blue-700 transition hover:border-blue-700">
+                                <Link href={'/form/'+form.id+'/submissions'} className="flex-1 text-center py-3 border-t-2 border-l-2 border-gray-800 hover:bg-blue-700 transition hover:border-blue-700" title="View Submissions">
                                     <i className="far fa-list"></i>
                                 </Link>
-                                <button onClick={() => deleteForm(form.id)} className="flex-1 text-center border-t-2 border-gray-800 border-l-2 py-3 hover:bg-red-600 transition hover:border-red-600">
+                                <button onClick={() => deleteForm(form.id)} className="flex-1 text-center border-t-2 border-gray-800 border-l-2 py-3 hover:bg-red-600 transition hover:border-red-600" title="Delete Form">
                                     <i className="far fa-trash"></i>
                                 </button>
                             </div>
-                        </div>
+                        </li>
                     ))
                 }
                 { 
@@ -135,10 +137,12 @@ export function Home(props : {}) {
                         </>
                     )
                 }
-                <button className="border-2 hover:border-blue-700 border-dashed border-gray-800 transition rounded-lg p-4 flex flex-col justify-center items-center" onClick={()=>setCFModal(true)}>
-                    <i className="far fa-plus text-3xl"></i><br/>Create New
-                </button>
-            </div>
+                <li>
+                    <button className="border-2 hover:border-blue-700 border-dashed border-gray-800 transition rounded-lg p-4 flex flex-col justify-center items-center" onClick={()=>setCFModal(true)}>
+                        <i className="far fa-plus text-3xl"></i><br/>Create New
+                    </button>
+                </li>
+            </ul>
             
         </div>
     )

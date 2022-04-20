@@ -79,11 +79,19 @@ export const previewReducer = (state : PreviewState, action : PreviewAction) => 
             }
         }
         case "set_form_fields" : {
+            const sortedFields = action.formFields.sort((a, b) => {
+                return a.id && b.id ? 
+                a.id - b.id : 
+                0
+            });
+            const metaSort = action.formFields[0].meta;
+            const sortOrder = !metaSort ? sortedFields.map(f=>f.id ? f.id : 0) : metaSort;
+            const finalSortedFields = sortOrder.map((f)=> action.formFields.filter(x=>x.id === f)[0]);
             return {
                 ...state,
                 form : {
                     ...state.form,
-                    formFields : action.formFields
+                    formFields : finalSortedFields
                 }
             }
         }

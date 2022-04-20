@@ -5,7 +5,6 @@ import './index.css';
 //import App from './App';
 import reportWebVitals from './reportWebVitals';
 
-
 ReactDOM.render(
     //Removed strict mode due to bugs.
     //<React.StrictMode>

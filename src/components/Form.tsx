@@ -1,8 +1,10 @@
 import { Link } from "raviger";
 import React, {useState, useEffect, useRef, useReducer} from "react";
+import CopyToClipboard from "react-copy-to-clipboard";
 import { reducer } from "../actions/FormActions";
 import { apiFormFields, apiFormWithFields, fieldTypesDisplay, formField } from "../types/FormTypes";
 import { API } from "../utils/api";
+import { DragDropContext, Draggable, Droppable, DropResult } from 'react-beautiful-dnd';
 
 export interface formData {
     id : number,
@@ -46,10 +48,22 @@ export function Form( props: {formState : number}){
 
     const defaultForm : apiFormWithFields = {
         title : "Loading",
-        formFields : []
+        formFields : [],
     }
 
     const [state, dispatch] = useReducer(reducer, defaultForm);
+    const [orderState, setOrderState] = useState<number[]>([]);
+
+    const reorderFields = (result : DropResult) => {
+        const dropSource = result.source.index ;
+        const dropDestination = result.destination?.index;
+        let oState = orderState;
+        [ oState[dropDestination?dropDestination:0],  oState[dropSource]] = [ oState[dropSource],  oState[dropDestination?dropDestination:0]];
+        console.log(oState);
+        setOrderState(oState);
+        dispatch({type : "set_order", order : oState});
+    }
+
     const [newField, setNewField] = useState(defaultNewField);
     const [newOption, setNewOption] = useState(defaultOptions);
 
@@ -71,7 +85,7 @@ export function Form( props: {formState : number}){
         const form = await API.form.get(formID);
         const formFields = await API.form.getFields(formID);
         dispatch({type : "set_form", form : form});
-        dispatch({type : "set_form_fields", formFields : formFields.results});
+        dispatch({type : "set_form_fields", formFields : formFields.results, orderState : orderState, callback : setOrderState});
     }
 
     const deleteField = async (field : apiFormFields) => {
@@ -147,6 +161,14 @@ export function Form( props: {formState : number}){
     const toolbar_button = "inline-flex w-[40px] bg-gray-800/70 rounded-xl h-[40px] justify-center items-center transition hover:bg-gray-800/40";
     const toolbar_button_extendable = "inline-flex bg-gray-800/70 rounded-xl h-[40px] justify-center items-center transition hover:bg-gray-800/40 px-4";
     
+    const [copied, setCopied] = useState(false);
+    const onCopy = () => {
+        setCopied(true);
+        setTimeout(() => {
+        setCopied(false);
+        }, 1000);
+    };
+
     return (
         <div className="mt-4">
             <div className="flex justify-between items-center">
@@ -167,6 +189,13 @@ export function Form( props: {formState : number}){
                     <Link href={`/form/${state.id}/submissions`} className={toolbar_button_extendable} title="Submissions">
                         <i className="far fa-list"></i> &nbsp; Submissions
                     </Link>
+                    <CopyToClipboard text={`localhost:3000/form/${props.formState}/preview`} onCopy={onCopy}>
+                            <button className={toolbar_button + ' relative'} title="Copy Link">
+                                <i className="far fa-copy"></i>
+                                {copied && <span className="absolute top-[-50px] left-0 p-2 bg-blue-700/40 rounded">Copied!</span>}
+
+                            </button>
+                    </CopyToClipboard>
                     <button className={toolbar_button} onClick={()=>dispatch({type:"empty_fields"})} title="Remove all fields">
                         <i className="far fa-empty-set"></i>
                     </button>
@@ -175,87 +204,104 @@ export function Form( props: {formState : number}){
                     </Link>
                 </div>
             </div>
-            {state.formFields.map((field : apiFormFields, i : number) => (
-                <div key = {i} className="flex items-center justify-center gap-2 mb-2">
-                    <div className="w-full pl-1">
-                        <span className="text-gray-400">
-                            {field.kind}
-                        </span>
-                        <br/>
-                        <input 
-                            type="text" 
-                            name={field.label} 
-                            id={"input_"+field.label} 
-                            className={input_style+' mt-1'} 
-                            placeholder="Field Name"
-                            value={field.label}
-                            onChange={e=>{
-                                dispatch({type : "update_field", element: e, field : field});
-                            }}
-                        />
-                        {
-                            field.kind === 'DROPDOWN' || field.kind === "RADIO" ?
-                            (
-                                <div className="ml-4 border-l-2 border-gray-800 pl-4 mt-3">
-                                    <small className="text-gray-400">
-                                        Options
-                                    </small>
-                                    <br/>
-                                    {
-                                        field.options ? field.options.map((option : string,x:number)=> (
-                                            <div className="flex justify-between align-center gap-2" key={x}>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Option Name"
-                                                    value={option}
-                                                    className={input_style+' mb-2'}
-                                                    onChange={e=>{
-                                                        dispatch({type : "update_option", element: e, field: field, option: x})
-                                                    }}
-                                                />
-                                                <button className={toolbar_button+` hover:bg-red-600`} onClick={_=>dispatch({type: "delete_option", field : field, optionNumber : x})}>
-                                                    <i className="far fa-minus" />
-                                                </button>
-                                            </div>
-                                        )) : 
-                                        ""
-                                    }
-                                    <div className="flex align-center justify-center gap-2 mt-2">
+            <DragDropContext onDragEnd={(e)=>{reorderFields(e)}}>
+                <Droppable droppableId="formfields">
+                    {(provided) => (
+                        <ul className="formfields" {...provided.droppableProps} ref={provided.innerRef}>
+                        {orderState.map((fieldID, i) => {
+                            const field = state.formFields.filter((f : apiFormFields)=>f.id === fieldID)[0];
+                            return (
+                            <Draggable key = {i} draggableId={`${i}`} index={i}>
+                                {(provided)=>(
+                                <li  className="flex items-center justify-center gap-2 mb-2" ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                                    <div className="w-full pl-1">
+                                        <span className="text-gray-400">
+                                            {field.kind}
+                                        </span>
+                                        <br/>
                                         <input 
-                                            type="text"
-                                            placeholder="Add Option"
-                                            className={input_style}
-                                            value = {newOption.filter(f=>f.id === field.id).map(fe=>fe.value)}
+                                            type="text" 
+                                            name={field.label} 
+                                            id={"input_"+field.label} 
+                                            className={input_style+' mt-1'} 
+                                            placeholder="Field Name"
+                                            value={field.label}
                                             onChange={e=>{
-                                                setNewOption([
-                                                    ...newOption.filter(f=>f.id !== field.id),
-                                                    {
-                                                        id : field.id ? field.id : 0,
-                                                        value : e.target.value
-                                                    }
-                                                ]);
+                                                dispatch({type : "update_field", element: e, field : field});
                                             }}
                                         />
-                                        <button className={toolbar_button} onClick={()=>addOption(field, newOption)}>
-                                            <i className="far fa-grid-2-plus" />
+                                        {
+                                            field.kind === 'DROPDOWN' || field.kind === "RADIO" ?
+                                            (
+                                                <div className="ml-4 border-l-2 border-gray-800 pl-4 mt-3">
+                                                    <small className="text-gray-400">
+                                                        Options
+                                                    </small>
+                                                    <br/>
+                                                    {
+                                                        field.options ? field.options.map((option : string,x:number)=> (
+                                                            <div className="flex justify-between align-center gap-2" key={x}>
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Option Name"
+                                                                    value={option}
+                                                                    className={input_style+' mb-2'}
+                                                                    onChange={e=>{
+                                                                        dispatch({type : "update_option", element: e, field: field, option: x})
+                                                                    }}
+                                                                />
+                                                                <button className={toolbar_button+` hover:bg-red-600`} onClick={_=>dispatch({type: "delete_option", field : field, optionNumber : x})} title="Remove Option">
+                                                                    <i className="far fa-minus" />
+                                                                </button>
+                                                            </div>
+                                                        )) : 
+                                                        ""
+                                                    }
+                                                    <div className="flex align-center justify-center gap-2 mt-2">
+                                                        <input 
+                                                            type="text"
+                                                            placeholder="Add Option"
+                                                            className={input_style}
+                                                            value = {newOption.filter(f=>f.id === field.id).map(fe=>fe.value)}
+                                                            onChange={e=>{
+                                                                setNewOption([
+                                                                    ...newOption.filter(f=>f.id !== field.id),
+                                                                    {
+                                                                        id : field.id ? field.id : 0,
+                                                                        value : e.target.value
+                                                                    }
+                                                                ]);
+                                                            }}
+                                                        />
+                                                        <button className={toolbar_button} onClick={()=>addOption(field, newOption)} title="Add Option">
+                                                            <i className="far fa-grid-2-plus" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ) :
+                                            (
+                                                <>
+                                                </>
+                                            )
+                                        }
+                                    </div>
+                                    <div>
+                                        <button className={toolbar_button+` hover:bg-red-600`} onClick={_=>deleteField(field)} title="Delete Field">
+                                            <i className="far fa-trash" />
                                         </button>
                                     </div>
-                                </div>
-                            ) :
-                            (
-                                <>
-                                </>
-                            )
-                        }
-                    </div>
-                    <div>
-                        <button className={toolbar_button+` hover:bg-red-600`} onClick={_=>deleteField(field)}>
-                            <i className="far fa-trash" />
-                        </button>
-                    </div>
+                                    
+                                </li>
+                                )}
+                            </Draggable>
+                        )})}
+                        {provided.placeholder}
+                        </ul>
+                    )}
                     
-                </div>
-            ))}
+                    
+                </Droppable>
+            </DragDropContext>
             
             <div className="w-full flex items-center justify-center mt-4 pt-4 border-dashed border-t-2 pl-1 border-t-gray-800 gap-2">
                 <input 

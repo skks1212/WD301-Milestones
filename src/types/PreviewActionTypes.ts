@@ -31,7 +31,7 @@ type SetQuizForm = {
 
 type SetQuizFormFields = {
     type : "set_form_fields",
-    formFields : apiFormFields
+    formFields : apiFormFields[]
 }
 
 export type PreviewAction = 
