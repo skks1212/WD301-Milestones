@@ -105,7 +105,7 @@ export function Form( props: {formState : number}){
         return () => {
             document.title = "Formify";
         }
-    },[]);
+    },[]); 
 
     useEffect(() => {
         let timeout = setTimeout(() => {
