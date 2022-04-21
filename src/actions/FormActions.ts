@@ -11,10 +11,11 @@ export const reducer = (state : apiFormWithFields, action : formAction) => {
             }
         }
         case "add_field" : {
-            if(optionTypes.includes(action.field.type)){
+            if(["RADIO", "DROPDOWN"].includes(action.field.kind)){
                 action.setUpOptions();
             }
-
+            action.setOrder([...action.order, action.field.id ? action.field.id : 0]);
+            console.log(action.field);
             action.callback?.();
             return {
                 ...state,
@@ -25,10 +26,12 @@ export const reducer = (state : apiFormWithFields, action : formAction) => {
             };
         }
         case "remove_field" : {
-            return {
+            const toReturn = {
                 ...state,
                 formFields : state.formFields.filter((field : apiFormFields) => field.id !== action.field.id)
             };
+            action.setOrder(action.order.filter(o=>o!==action.field.id));
+            return toReturn;
         }
         case "update_field" : {
             const thisValue = action.element.target.value;
@@ -152,7 +155,7 @@ export const reducer = (state : apiFormWithFields, action : formAction) => {
                 a.id - b.id : 
                 0
             });
-            const metaSort = action.formFields[0].meta;
+            const metaSort = action.formFields[0]?.meta ? action.formFields[0].meta : false;
             const sortOrder = !metaSort ? sortedFields.map(f=>f.id ? f.id : 0) : metaSort;
             
             const optionedFields = sortedFields.map(field=>{

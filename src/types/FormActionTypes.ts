@@ -9,14 +9,19 @@ type UpdateTitleAction = {
 
 type AddFieldAction = {
     type : "add_field",
-    field : newField,
+    field : apiFormFields,
     callback? : () => void,
-    setUpOptions : () => void
+    setUpOptions : () => void,
+    setOrder : (ostate : number[]) => void,
+    order : number[];
+    
 };
 
 type RemoveFieldAction = {
     type : "remove_field",
     field : apiFormFields
+    setOrder : (ostate : number[]) => void,
+    order : number[];
 };
 
 type UpdateFieldAction = {

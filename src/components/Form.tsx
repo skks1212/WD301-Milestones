@@ -89,7 +89,7 @@ export function Form( props: {formState : number}){
     }
 
     const deleteField = async (field : apiFormFields) => {
-        dispatch({type: "remove_field", field : field});
+        dispatch({type: "remove_field", field : field, setOrder: setOrderState, order: orderState});
         const deleteFields = await API.form.deleteField(state.id ? state.id : 0, field);
         if(deleteFields){
             console.log('Deleted Fields');
@@ -155,7 +155,7 @@ export function Form( props: {formState : number}){
             options : formField.type !== "TEXT" ? [] : null
         };
         const posted = await API.form.addField(state.id ? state.id : 0, addObject );
-        dispatch({type:"add_field", field: posted, callback : () => setNewField(defaultNewField), setUpOptions : setUpOptions})
+        dispatch({type:"add_field", field: posted, callback : () => setNewField(defaultNewField), setUpOptions : setUpOptions, order : orderState, setOrder : setOrderState})
     }
 
     const toolbar_button = "inline-flex w-[40px] bg-gray-800/70 rounded-xl h-[40px] justify-center items-center transition hover:bg-gray-800/40";
@@ -231,7 +231,7 @@ export function Form( props: {formState : number}){
                                             }}
                                         />
                                         {
-                                            field.kind === 'DROPDOWN' || field.kind === "RADIO" ?
+                                            ["DROPDOWN", "RADIO"].includes(field.kind) ?
                                             (
                                                 <div className="ml-4 border-l-2 border-gray-800 pl-4 mt-3">
                                                     <small className="text-gray-400">
