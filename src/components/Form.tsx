@@ -105,7 +105,8 @@ export function Form( props: {formState : number}){
         return () => {
             document.title = "Formify";
         }
-    },[]); 
+    },[]); // eslint-disable-line react-hooks/exhaustive-deps 
+    // Hehe
 
     useEffect(() => {
         let timeout = setTimeout(() => {
@@ -116,7 +117,8 @@ export function Form( props: {formState : number}){
         return () => {
             clearTimeout(timeout);
         }
-    }, [state]);
+    }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Hehe 2
 
     const resetOptionField = (field : apiFormFields) => {
         setNewOption([

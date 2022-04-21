@@ -1,5 +1,5 @@
 import { formAction } from "../types/FormActionTypes";
-import { apiFormFields, apiFormWithFields, optionTypes } from "../types/FormTypes";
+import { apiFormFields, apiFormWithFields } from "../types/FormTypes";
 import { API } from "../utils/api";
 
 export const reducer = (state : apiFormWithFields, action : formAction) => {
