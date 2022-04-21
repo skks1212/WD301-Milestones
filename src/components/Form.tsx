@@ -44,7 +44,7 @@ const defaultOptions : optionsField[] = [];
 
 export const input_style = 'border-2 bg-gray-800/70 border-gray-800 rounded-xl py-2 px-3 mt-0 w-full block focus:bg-gray-800 outline-0 focus:border-blue-700 transition';
 
-export function Form( props: {formState : number}){
+export default function Form( props: {formState : number}){
 
     const defaultForm : apiFormWithFields = {
         title : "Loading",

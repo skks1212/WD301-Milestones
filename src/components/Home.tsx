@@ -6,7 +6,7 @@ import { API } from "../utils/api";
 import Modal from "./Modal";
 import { apiRecieveForm } from "../types/FormTypes";
 
-export function Home(props : {}) {
+export default function Home(props : {}) {
     const [{search}, setQuery] = useQueryParams();
     const [searchString, setSearchString] = useState("");
 
